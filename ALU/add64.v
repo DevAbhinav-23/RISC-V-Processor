@@ -4,8 +4,7 @@ module adder64(
     input [63:0] A, B,
     output [63:0] S,
     input Cin,
-    output Cout,
-    output zero_flag
+    output Cout
 );
     wire [16:0] C; // intermediate carry outs. note that there are 16 + 1 = 17 carries
     assign C[0] = Cin;

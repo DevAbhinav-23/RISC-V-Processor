@@ -2,19 +2,24 @@
 `include "ALU/add64.v"
 `include "mux.v"
 `include "shift_left_1.v"
+`include "Control.v"
 
 module seq(
     input clk
 );
-    wire temp1, temp2; // couts of both the adders 
+    wire [31:0] instruction; // as the name suggest, instruction
+    wire temp1, temp2; // couts of both the adders. useless stuff, just there as floating
     wire [63:0] pc_out, pc_in; // pc block input and output
-    wire [63:0] shift_left_out; // shift left by 2 immediate output
+    wire [63:0] shift_left_out; // shift left by 1 immediate output
     wire [63:0] pc_mux_0, pc_mux_1; // pc_mux input signals
-    wire pc_ctrl;
-    wire branch, MemRead, MemtoReg, ALUOp, MemWrite, ALUSrc, RegWrite;
-    wire zero_flag;
-    wire [63:0] opA, opB, ALU_result;
-    wire [3:0] ALU_ctrl_out;
+    wire pc_ctrl; // pc_mux control signal which is the and of branch and zero flag
+    wire Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite; // control block outputs
+    wire [1:0] ALUOp;
+    wire zero_flag; // ALU output
+    wire [63:0] opA, opB, ALU_result; // ALU inputs and outputs
+    wire [3:0] ALU_ctrl_out; // ALU control output
+    wire [6:0] opcode; // opcode for the control block
+    assign opcode = instruction[6:0];
 
     alu_64_bit(
         .a(opA),
@@ -40,7 +45,7 @@ module seq(
         .Cout(temp2)
     );
 
-    and (pc_ctrl, branch, zero_flag);
+    and (pc_ctrl, Branch, zero_flag);
 
     mux pc_mux(
         .a(pc_mux_0),
@@ -52,5 +57,15 @@ module seq(
     shift_left_1 left_inst(
         .inp(imm_gen_out),
         .out(shift_left_out)
+    );
+    control ctrl_inst(
+        .opcode(opcode),
+        .Branch(Branch),
+        .MemRead(MemRead),
+        .MemtoReg(MemtoReg),
+        .ALUOp(ALUOp),
+        .MemWrite(MemWrite),
+        .ALUSrc(ALUSrc),
+        .RegWrite(RegWrite)
     );
 endmodule

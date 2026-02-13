@@ -21,7 +21,7 @@ module seq(
     wire [6:0] opcode; // opcode for the control block
     assign opcode = instruction[6:0];
 
-    alu_64_bit(
+    alu_64_bit ALU(
         .a(opA),
         .b(opB),
         .opcode(ALU_ctrl_out),

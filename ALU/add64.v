@@ -3,11 +3,12 @@
 module adder64(
     input [63:0] A, B,
     output [63:0] S,
+    input Cin,
     output Cout,
-    output zero_flag, carry_flag, overflow_flag
+    output zero_flag
 );
     wire [16:0] C; // intermediate carry outs. note that there are 16 + 1 = 17 carries
-    assign C[0] = 1'b0;
+    assign C[0] = Cin;
     genvar i;
     generate
         for(i = 0; i < 16; i = i + 1) begin : chain
@@ -21,7 +22,4 @@ module adder64(
         end
     endgenerate
     assign Cout = C[16];
-    assign zero_flag = (S == 64'b0);
-    assign carry_flag = C[16];
-    assign overflow_flag = (~(A[63] ^ B[63])) & (A[63] ^ S[63]); // both inputs are same sign but the output is of different sign, then it is overflow
 endmodule

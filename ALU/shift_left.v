@@ -2,8 +2,7 @@
 
 module sll64(
     input  [63:0] A, B,
-    output [63:0] S,
-    output cout, carry_flag, zero_flag, overflow_flag
+    output [63:0] S
 ); 
     // This uses the fact that any number can be represented in binary
     // Can be shifted by at max 63. So, the last 6 bits are enuf
@@ -17,9 +16,4 @@ module sll64(
     assign s4 = B[3] ? {s3[55:0], zero[63:56]} : s3;
     assign s5 = B[4] ? {s4[47:0], zero[63:48]} : s4;
     assign S = B[5] ? {s5[31:0], zero[63:32]} : s5;
-
-    assign zero_flag = (S == 64'b0);
-    assign carry_flag = 1'b0;
-    assign overflow_flag = A[63] ^ S[63];
-    assign cout = 1'b0;
 endmodule

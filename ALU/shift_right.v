@@ -2,8 +2,7 @@
 
 module srl64(
     input  [63:0] A, B,
-    output [63:0] S,
-    output cout, carry_flag, zero_flag, overflow_flag
+    output [63:0] S
 );
     // This uses the fact that abny number can be represented in binary
     // Can be shifted by at max 63. So, the last 6 bits are enuf
@@ -17,9 +16,4 @@ module srl64(
     assign s4 = B[3] ? {zero[63:56], s3[63:8]} : s3;
     assign s5 = B[4] ? {zero[63:48], s4[63:16]} : s4;
     assign S = B[5] ? {zero[63:32], s5[63:32]} : s5;
-
-    assign zero_flag = (S == 64'b0);
-    assign carry_flag = 1'b0;
-    assign overflow_flag = A[63] ^ S[63]; // if the actual number is signed but the shift amount is non zero, the result looks like +ve but it is not
-    assign cout = 1'b0;
 endmodule

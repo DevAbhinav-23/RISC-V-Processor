@@ -89,7 +89,9 @@ module alu_64_bit(
         .B(b),
         .S(sra_ans)
     );
-    assign slt_ans = {63'b0, add_ans[63]}; // if A < B, A - B = -ve, so the signed bit is 1
+    wire overflow;
+    assign overflow = (A[63] ^ B[63]) & (add_ans[63] ^ A[63]);
+    assign slt_ans = {63'b0, add_ans[63] ^ overflow}; 
     assign sltu_ans = {63'b0, ~cout}; // if borrow is happening, A < B and borrow = ~cout, where cout is the final bit carry of the 64 bit adder
     always @(*) begin
         case(opcode)

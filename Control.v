@@ -4,6 +4,7 @@ module control(
     output [1:0] ALUOp
 );
     // I am following the RISC-V edition book convention guys, just go through the sections 4.3 and 4.4 of the TB to understand this
+    // 00 is load/store, 01 is branch, 10 is for R format and 11 is for I format
     localparam R = 7'b0110011;
     localparam I = 7'b0010011;
     localparam I_ld = 7'b0000011;
@@ -23,7 +24,58 @@ module control(
     always @(*) begin
         case(opcode)
             R: begin
-
+                Branch_reg = 1'b0;
+                MemRead_reg = 1'b0;
+                MemtoReg_reg = 1'b0;
+                MemWrite_reg = 1'b0;
+                ALUSrc_reg = 1'b0;
+                RegWrite_reg = 1'b1;
+                ALUOp_reg = 2'b10;
+            end
+            I: begin
+                Branch_reg = 1'b0;
+                MemRead_reg = 1'b0;
+                MemtoReg_reg = 1'b0;
+                MemWrite_reg = 1'b0;
+                ALUSrc_reg = 1'b1;
+                RegWrite_reg = 1'b1;
+                ALUOp_reg = 2'b11;
+            end
+            I_ld: begin
+                Branch_reg = 1'b0;
+                MemRead_reg = 1'b1;
+                MemtoReg_reg = 1'b1;
+                MemWrite_reg = 1'b0;
+                ALUSrc_reg = 1'b1;
+                RegWrite_reg = 1'b1;
+                ALUOp_reg = 2'b00;
+            end
+            B: begin
+                Branch_reg = 1'b1;
+                MemRead_reg = 1'b0;
+                MemtoReg_reg = 1'b0;
+                MemWrite_reg = 1'b0;
+                ALUSrc_reg = 1'b0; // doesn't matter if it's 0 or 1 bcz it is added by the PC adder and ALU operands are lite for it
+                RegWrite_reg = 1'b0;
+                ALUOp_reg = 2'b01;
+            end
+            S: begin
+                Branch_reg = 1'b0;
+                MemRead_reg = 1'b0;
+                MemtoReg_reg = 1'b0;
+                MemWrite_reg = 1'b1;
+                ALUSrc_reg = 1'b1;
+                RegWrite_reg = 1'b0;
+                ALUOp_reg = 2'b00;
+            end
+            default: begin
+                Branch_reg = 1'b0;
+                MemRead_reg = 1'b0;
+                MemtoReg_reg = 1'b0;
+                MemWrite_reg = 1'b0;
+                ALUSrc_reg = 1'b0;
+                RegWrite_reg = 1'b0;
+                ALUOp_reg = 2'b00;
             end
         endcase
     end

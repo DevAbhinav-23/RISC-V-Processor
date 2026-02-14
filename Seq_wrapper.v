@@ -2,7 +2,9 @@
 `include "ALU/add64.v"
 `include "mux.v"
 `include "shift_left_1.v"
-`include "Control.v"
+`include "control.v"
+`include "alu_control.v"
+`include "immgen.v"
 
 module seq(
     input clk
@@ -58,6 +60,7 @@ module seq(
         .inp(imm_gen_out),
         .out(shift_left_out)
     );
+
     control ctrl_inst(
         .opcode(opcode),
         .Branch(Branch),

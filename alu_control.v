@@ -9,59 +9,24 @@ module alu_control(
 
     always @(*) begin
         case (alu_op)
-            2'b00: begin
+            2'b00:
                 alu_c = 4'b0000;
-            end
-            2'b01: begin
+
+            2'b01:
                 alu_c = 4'b1000;
-            end
-            2'b10: begin
-                if(funct3 == 3'b000)
-                    if(funct7_6 == 1'b0)
-                        alu_c = 4'b0000;
-                    else
-                        alu_c = 4'b1000;
-                else if(funct3 == 3'b100)
-                    alu_c = 4'b0100;
-                else if(funct3 == 3'b110)
-                    alu_c = 4'b0110;
-                else if(funct3 == 3'b111)
-                    alu_c = 4'b0111;
-                else if(funct3 == 3'b001)
-                    alu_c = 4'b0001;
-                else if(funct3 == 3'b101)
-                    if(funct7_6 == 1'b0)
-                        alu_c = 4'b0101;
-                    else
-                        alu_c = 4'b1101;
-                else if(funct3 == 3'b010)
-                    alu_c = 4'b0010;
-                else
-                    alu_c = 4'b0011;
-            end
+
+            2'b10:
+                alu_c = {funct7_6, funct3};
+
             2'b11: begin
                 if (funct3 == 3'b000)
                     alu_c = 4'b0000;
-                else if (funct3 == 3'b100)
-                    alu_c = 4'b0100;
-                else if (funct3 == 3'b110)
-                    alu_c = 4'b0110;
-                else if (funct3 == 3'b111)
-                    alu_c = 4'b0111;
-                else if (funct3 == 3'b001)
-                    alu_c = 4'b0001;
-                else if (funct3 == 3'b101)
-                    if (funct7_6 == 1'b0)
-                        alu_c = 4'b0101;
-                    else
-                        alu_c = 4'b1101;
-                else if (funct3 == 3'b010)
-                    alu_c = 4'b0010;
                 else
-                    alu_c = 4'b0011;
+                    alu_c = {funct7_6, funct3};
             end
 
-            default : alu_c = 4'b0000;
+            default:
+                alu_c = 4'b0000;
         endcase
     end
 

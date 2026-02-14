@@ -9,24 +9,21 @@ module alu_control(
 
     always @(*) begin
         case (alu_op)
-            2'b00:
+            2'b00: 
                 alu_c = 4'b0000;
-
-            2'b01:
+            2'b01: 
                 alu_c = 4'b1000;
-
-            2'b10:
+            2'b10: 
                 alu_c = {funct7_6, funct3};
-
             2'b11: begin
-                if (funct3 == 3'b000)
-                    alu_c = 4'b0000;
-                else
+                if (funct3 == 3'b101)
                     alu_c = {funct7_6, funct3};
+                else
+                    alu_c = {1'b0, funct3};
             end
-
-            default:
+            default: 
                 alu_c = 4'b0000;
+
         endcase
     end
 

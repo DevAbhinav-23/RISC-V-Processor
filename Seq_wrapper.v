@@ -6,6 +6,7 @@
 `include "alu_control.v"
 `include "immgen.v"
 `include "pc.v"
+`include "instruction_mem.v"
 
 module seq(
     input clk, reset // synchronous active high reset for the memory blocks

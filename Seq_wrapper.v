@@ -93,4 +93,11 @@ module seq(
         .instr(instr),
         .alu_c(ALU_ctrl_out)
     );
+
+    instruction_mem instruction_mem_inst(
+        .clk(clk),
+        .reset(reset),
+        .addr(pc_out[11:0]), // in instruction memory we have 4096 bytes available thus only 12 bits is enough to describe the address.
+        .instr(instruction)
+    )
 endmodule

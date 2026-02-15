@@ -55,7 +55,7 @@ module control(
                 MemRead_reg = 1'b0;
                 MemtoReg_reg = 1'b0;
                 MemWrite_reg = 1'b0;
-                ALUSrc_reg = 1'b0; // doesn't matter if it's 0 or 1 bcz it is added by the PC adder and ALU operands are lite for it
+                ALUSrc_reg = 1'b0; // we are subtracting the second operand for checking for branch, so it shud be asserted to 0.
                 RegWrite_reg = 1'b0;
                 ALUOp_reg = 2'b01;
             end

@@ -11,10 +11,10 @@ module seq(
     input clk, reset // synchronous active high reset for the memory blocks
 );
     wire [31:0] instruction; // as the name suggest, instruction
-    wire temp1, temp2; // couts of both the adders. useless stuff, just there as floating
+    wire temp; // couts of the adder. useless stuff, just there as floating
     wire [63:0] pc_out, pc_in; // pc block input and output
     wire [63:0] shift_left_out; // shift left by 1 immediate output
-    wire [63:0] pc_mux_0, pc_mux_1; // pc_mux input signals
+    wire [63:0] second_op; // the second operand of the PC_Adder
     wire [63:0] imm_gen_out; // immediate generate block output
     wire pc_ctrl; // pc_mux control signal which is the and of branch and zero flag
     wire Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite; // control block outputs
@@ -37,27 +37,19 @@ module seq(
 
     adder64 pc_adder(
         .A(pc_out),
-        .B(64'd4),
-        .S(pc_mux_0),
+        .B(second_op),
+        .S(pc_in),
         .Cin(1'b0),
-        .Cout(temp1)
-    );
-
-    adder64 shift_adder(
-        .A(pc_out),
-        .B(shift_left_out),
-        .S(pc_mux_1),
-        .Cin(1'b0),
-        .Cout(temp2)
+        .Cout(temp)
     );
 
     and (pc_ctrl, Branch, zero_flag);
 
     mux pc_mux(
-        .a(pc_mux_0),
-        .b(pc_mux_1),
+        .a(64'd4),
+        .b(shift_left_out),
         .sel(pc_ctrl),
-        .out(pc_in)
+        .out(second_op)
     );
 
     shift_left_1 left_inst(

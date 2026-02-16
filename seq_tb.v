@@ -10,40 +10,26 @@ module seq_tb;
     integer k;
     integer cycle_count;
 
-    // Instantiate processor
     seq uut (
         .clk(clk),
         .reset(reset)
     );
 
-    // Clock generation (10ns period)
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
 
-
-    // Reset and run
     initial begin
 
         $dumpfile("processor.vcd");
         $dumpvars(0, seq_tb);
-
-        $display("==========================================");
-        $display("      RISC-V Processor Full Test");
-        $display("==========================================");
-
         reset = 1;
         #20;
         reset = 0;
         cycle_count = 0;
 
-        // Run enough cycles
-        repeat(50) @(posedge clk);
-
-        $display("\n==========================================");
-        $display("Final Register Values:");
-        $display("==========================================");
+        repeat(100) @(posedge clk);
 
         $display("x1  = %0d", $signed(uut.reg_file_inst.registers[1]));
         $display("x2  = %0d", $signed(uut.reg_file_inst.registers[2]));
@@ -55,41 +41,6 @@ module seq_tb;
         $display("x10 = %0d", $signed(uut.reg_file_inst.registers[10]));
         $display("x11 = %0d", $signed(uut.reg_file_inst.registers[11]));
         $display("x13 = %0d", $signed(uut.reg_file_inst.registers[13]));
-
-
-        $display("\n==========================================");
-        $display("Memory Values:");
-        $display("==========================================");
-
-        $display("mem[10] = %0d",
-        $signed({
-        uut.data_mem_inst.mem[13],
-        uut.data_mem_inst.mem[12],
-        uut.data_mem_inst.mem[11],
-        uut.data_mem_inst.mem[10],
-        uut.data_mem_inst.mem[9],
-        uut.data_mem_inst.mem[8],
-        uut.data_mem_inst.mem[7],
-        uut.data_mem_inst.mem[6]
-        }));
-
-
-        $display("mem[13] = %0d",
-        $signed({
-        uut.data_mem_inst.mem[16],
-        uut.data_mem_inst.mem[15],
-        uut.data_mem_inst.mem[14],
-        uut.data_mem_inst.mem[13],
-        uut.data_mem_inst.mem[12],
-        uut.data_mem_inst.mem[11],
-        uut.data_mem_inst.mem[10],
-        uut.data_mem_inst.mem[9]
-        }));
-
-
-        $display("\n==========================================");
-        $display("Simulation Finished");
-        $display("==========================================");
 
         begin
             fh = $fopen("register.txt", "w");
@@ -105,10 +56,9 @@ module seq_tb;
 
     end
 
-    // Cycle counter
     always @(posedge clk) begin
         if (!reset)
-            cycle_count <= cycle_count + 1;
+            cycle_count <= cycle_count;
     end
 
     always @(posedge clk)
@@ -127,6 +77,4 @@ module seq_tb;
         end
 
     end
-
-
 endmodule

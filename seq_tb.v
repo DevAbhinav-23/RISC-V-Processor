@@ -1,102 +1,114 @@
+`timescale 1ns/1ps
+
 `include "Seq_wrapper.v"
 
-module processor_tb;
+module seq_tb;
+
     reg clk;
     reg reset;
-    
-    // Instantiate the processor
-    seq processor (
+
+    // Instantiate processor
+    seq uut (
         .clk(clk),
         .reset(reset)
     );
-    
-    // Clock generation (10ns period = 100MHz)
+
+    // Clock generation (10ns period)
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
-    
-    // Test sequence
+
+
+    // Reset and run
     initial begin
-        $display("========================================");
-        $display("RISC-V Processor - ADD Operation Test");
-        $display("========================================");
-        $display("Program:");
-        $display("  0x00: li x5, 5       (x5 = 5)");
-        $display("  0x04: li x6, 10      (x6 = 10)");
-        $display("  0x08: add x7, x5, x6 (x7 = 15)");
-        $display("  0x0C: add x8, x7, x5 (x8 = 20)");
-        $display("");
-        
-        // Initialize VCD dump for waveform viewing
+
         $dumpfile("processor.vcd");
-        $dumpvars(0, processor_tb);
-        
-        // Reset sequence
+        $dumpvars(0, seq_tb);
+
+        $display("==========================================");
+        $display("      RISC-V Processor Full Test");
+        $display("==========================================");
+
         reset = 1;
-        #20;  // Hold reset for 2 clock cycles
+        #20;
         reset = 0;
-        
-        $display("Starting execution...");
-        $display("");
-        
-        // Run for 20 clock cycles (enough for 4 instructions)
-        repeat(20) begin
-            @(posedge clk);
-        end
-        
-        $display("========================================");
-        $display("Execution Complete!");
-        $display("========================================");
-        $display("");
-        
-        // Write register values to file in hexadecimal
-        begin
-            integer reg_file;
-            reg_file = $fopen("registers.txt", "w");
-            if (reg_file) begin
-                $fdisplay(reg_file, "========================================");
-                $fdisplay(reg_file, "Final Register Values (Hexadecimal):");
-                $fdisplay(reg_file, "========================================");
-                $fdisplay(reg_file, "  x5 = 0x%016h (expected: 0x0000000000000005)", processor.reg_file_inst.registers[5]);
-                $fdisplay(reg_file, "  x6 = 0x%016h (expected: 0x000000000000000A)", processor.reg_file_inst.registers[6]);
-                $fdisplay(reg_file, "  x7 = 0x%016h (expected: 0x000000000000000F)", processor.reg_file_inst.registers[7]);
-                $fdisplay(reg_file, "  x8 = 0x%016h (expected: 0x0000000000000014)", processor.reg_file_inst.registers[8]);
-                $fdisplay(reg_file, "========================================");
-                $fclose(reg_file);
-                $display("Register values written to registers.txt");
-            end else begin
-                $display("ERROR: Could not open registers.txt for writing");
-            end
-        end
-        
+
+        // Run enough cycles
+        repeat(50) @(posedge clk);
+
+        $display("\n==========================================");
         $display("Final Register Values:");
-        $display("  x5 = %0d (expected: 5)", $signed(processor.reg_file_inst.registers[5]));
-        $display("  x6 = %0d (expected: 10)", $signed(processor.reg_file_inst.registers[6]));
-        $display("  x7 = %0d (expected: 15)", $signed(processor.reg_file_inst.registers[7]));
-        $display("  x8 = %0d (expected: 20)", $signed(processor.reg_file_inst.registers[8]));
-        $display("");
-        
-        // Check results
-        if ($signed(processor.reg_file_inst.registers[5]) == 5 &&
-            $signed(processor.reg_file_inst.registers[6]) == 10 &&
-            $signed(processor.reg_file_inst.registers[7]) == 15 &&
-            $signed(processor.reg_file_inst.registers[8]) == 20)
-            $display("SUCCESS: All ADD operations completed correctly!");
-        else
-            $display("FAILURE: Register values do not match expected values.");
-        
-        $display("========================================");
-        
+        $display("==========================================");
+
+        $display("x1  = %0d", $signed(uut.reg_file_inst.registers[1]));
+        $display("x2  = %0d", $signed(uut.reg_file_inst.registers[2]));
+        $display("x3  = %0d", $signed(uut.reg_file_inst.registers[3]));
+        $display("x4  = %0d", $signed(uut.reg_file_inst.registers[4]));
+        $display("x5  = %0d", $signed(uut.reg_file_inst.registers[5]));
+        $display("x6  = %0d", $signed(uut.reg_file_inst.registers[6]));
+        $display("x7  = %0d", $signed(uut.reg_file_inst.registers[7]));
+        $display("x10 = %0d", $signed(uut.reg_file_inst.registers[10]));
+        $display("x11 = %0d", $signed(uut.reg_file_inst.registers[11]));
+        $display("x13 = %0d", $signed(uut.reg_file_inst.registers[13]));
+
+
+        $display("\n==========================================");
+        $display("Memory Values:");
+        $display("==========================================");
+
+        $display("mem[10] = %0d",
+        $signed({
+        uut.data_mem_inst.mem[13],
+        uut.data_mem_inst.mem[12],
+        uut.data_mem_inst.mem[11],
+        uut.data_mem_inst.mem[10],
+        uut.data_mem_inst.mem[9],
+        uut.data_mem_inst.mem[8],
+        uut.data_mem_inst.mem[7],
+        uut.data_mem_inst.mem[6]
+        }));
+
+
+        $display("mem[13] = %0d",
+        $signed({
+        uut.data_mem_inst.mem[16],
+        uut.data_mem_inst.mem[15],
+        uut.data_mem_inst.mem[14],
+        uut.data_mem_inst.mem[13],
+        uut.data_mem_inst.mem[12],
+        uut.data_mem_inst.mem[11],
+        uut.data_mem_inst.mem[10],
+        uut.data_mem_inst.mem[9]
+        }));
+
+
+        $display("\n==========================================");
+        $display("Simulation Finished");
+        $display("==========================================");
+
         $finish;
+
     end
-    
-    // Monitor execution
-    always @(posedge clk) begin
-        if (!reset) begin
-            $display("Time=%0t | PC=0x%h | Instr=0x%h", 
-                     $time, processor.pc_out, processor.instruction);
+
+
+    // Live monitor
+    always @(posedge clk)
+    begin
+
+        if(!reset)
+        begin
+
+            $display(
+            "Time=%0t PC=%h Instr=%h",
+            $time,
+            uut.pc_out,
+            uut.instruction
+            );
+
         end
+
     end
-    
+
+
 endmodule

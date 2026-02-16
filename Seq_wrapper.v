@@ -7,6 +7,8 @@
 `include "immgen.v"
 `include "pc.v"
 `include "instruction_mem.v"
+`include "data_memory.v"
+`include "register_file.v"
 
 module seq(
     input clk, reset // synchronous active high reset for the memory blocks
@@ -22,8 +24,11 @@ module seq(
     wire [1:0] ALUOp; // 2 bit output of the control block
     wire zero_flag; // ALU output
     wire [63:0] opA, opB, ALU_result; // ALU inputs and outputs
+    wire [63:0] read_data_1, read_data_2 // register file outputs
     wire [3:0] ALU_ctrl_out; // ALU control output
     wire [6:0] opcode; // opcode for the control block
+    wire [63:0] read_data; // data memory output
+    wire [63:0] write_data; // write data for the register file
     assign opcode = instruction[6:0];
     wire [3:0] instr; // the 4 bit signal to the ALU_Control block
     assign instr = {instruction[30], instruction[14:12]};
@@ -92,5 +97,41 @@ module seq(
         .reset(reset),
         .addr(pc_out[11:0]), // in instruction memory we have 4096 bytes available thus only 12 bits is enough to describe the address.
         .instr(instruction)
-    )
+    );
+
+    mux alu_mux(
+        .a(read_data_2),
+        .b(imm_gen_out),
+        .sel(ALUSrc),
+        .out(opB)
+    );
+
+    mux mem_mux(
+        .a(ALU_result),
+        .b(read_data),
+        .sel(MemtoReg),
+        .out(write_data)
+    );
+
+    register_file reg_file_inst(
+        .clk(clk),
+        .reset(reset),
+        .register_write(RegWrite),
+        .reg1_r(instruction[19:15]),
+        .reg2_r(instruction[24:20]),
+        .reg1_w(instruction[11:7]),
+        .data_to_w(write_data),
+        .output1_r(read_data_1),
+        .output2_r(read_data_2)
+    );
+
+    data_memory data_mem_inst(
+        .clk(clk),
+        .reset(reset),
+        .mem_r(MemRead),
+        .mem_w(MemWrite),
+        .addr(ALU_result),
+        .input_w(read_data_2),
+        .output_w(read_data)
+    );
 endmodule

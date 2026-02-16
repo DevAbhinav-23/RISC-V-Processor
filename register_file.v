@@ -18,40 +18,21 @@ module register_file(
     assign output1_r = (reg1_r == 5'b0) ? 64'b0 : registers[reg1_r];
     assign output2_r = (reg2_r == 5'b0) ? 64'b0 : registers[reg2_r];
 
-    integer j;
-    integer cycle_count;
-    integer fh;
 
-    initial begin
-        cycle_count = 0;
-    end
 
     always @(posedge clk) begin
         if (reset == 1'b1) begin
-            cycle_count = 0;
             for (i = 0; i < `REG_MEM_SIZE; i = i + 1) begin
                 registers[i] <= 64'b0;
             end
         end
         else begin
-            cycle_count = cycle_count + 1;
             if (register_write == 1'b1 && reg1_w != 5'b0) begin
                 registers[reg1_w] <= data_to_w;
             end
         end
     end
 
-    always @(posedge clk) begin
-        fh = $fopen("registers.txt", "w");
-        $fdisplay(fh, "========================================");
-        $fdisplay(fh, "Register File Values (Hexadecimal)");
-        $fdisplay(fh, "Cycle Count: %0d", cycle_count);
-        $fdisplay(fh, "========================================");
-        for (j = 0; j < `REG_MEM_SIZE; j = j + 1) begin
-            $fdisplay(fh, "  x%0d = 0x%016h", j, registers[j]);
-        end
-        $fdisplay(fh, "========================================");
-        $fclose(fh);
-    end
+
 
 endmodule

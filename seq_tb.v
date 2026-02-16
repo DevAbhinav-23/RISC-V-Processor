@@ -6,6 +6,9 @@ module seq_tb;
 
     reg clk;
     reg reset;
+    integer fh;
+    integer k;
+    integer cycle_count;
 
     // Instantiate processor
     seq uut (
@@ -33,6 +36,7 @@ module seq_tb;
         reset = 1;
         #20;
         reset = 0;
+        cycle_count = 0;
 
         // Run enough cycles
         repeat(50) @(posedge clk);
@@ -87,12 +91,26 @@ module seq_tb;
         $display("Simulation Finished");
         $display("==========================================");
 
+        begin
+            fh = $fopen("register.txt", "w");
+            for (k = 0; k < 32; k = k + 1) begin
+                $fdisplay(fh, "%h", uut.reg_file_inst.registers[k]);
+            end
+            $fdisplay(fh, "%0d", cycle_count + 1);
+            $fclose(fh);
+            $display("Register contents written to register.txt");
+        end
+
         $finish;
 
     end
 
+    // Cycle counter
+    always @(posedge clk) begin
+        if (!reset)
+            cycle_count <= cycle_count + 1;
+    end
 
-    // Live monitor
     always @(posedge clk)
     begin
 

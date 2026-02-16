@@ -31,6 +31,7 @@ module seq(
     assign opcode = instruction[6:0];
     wire [3:0] instr; // the 4 bit signal to the ALU_Control block
     assign instr = {instruction[30], instruction[14:12]};
+    assign opA = read_data_1;
 
     alu_64_bit ALU(
         .a(opA),

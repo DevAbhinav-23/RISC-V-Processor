@@ -24,7 +24,7 @@ module seq(
     wire [1:0] ALUOp; // 2 bit output of the control block
     wire zero_flag; // ALU output
     wire [63:0] opA, opB, ALU_result; // ALU inputs and outputs
-    wire [63:0] read_data_1, read_data_2 // register file outputs
+    wire [63:0] read_data_1, read_data_2; // register file outputs
     wire [3:0] ALU_ctrl_out; // ALU control output
     wire [6:0] opcode; // opcode for the control block
     wire [63:0] read_data; // data memory output

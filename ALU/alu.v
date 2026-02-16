@@ -26,6 +26,17 @@ module alu_64_bit(
     // AND_Oper  = 4'b0111,
     // SUB_Oper  = 4'b1000,
     // SRA_Oper  = 4'b1101;
+    localparam ADD_Oper  = 4'b0000,
+               SLL_Oper  = 4'b0001,
+               SLT_Oper  = 4'b0010,
+               SLTU_Oper = 4'b0011,
+               XOR_Oper  = 4'b0100,
+               SRL_Oper  = 4'b0101,
+               OR_Oper   = 4'b0110,
+               AND_Oper  = 4'b0111,
+               SUB_Oper  = 4'b1000,
+               SRA_Oper  = 4'b1101;
+               
     wire [63:0] add_ans, xor_ans, or_ans, and_ans, sll_ans, srl_ans, sra_ans, slt_ans, sltu_ans;
     wire cout;
     // declaring the reg bcz in always block of switch case, cannot assign wires
@@ -40,17 +51,6 @@ module alu_64_bit(
         .B({64{cin}}),
         .C(b_inv)
     ); // b_inv = b for cin = 0, b_inv = ~b for cin = 1;
-
-    localparam ADD_Oper  = 4'b0000,
-               SLL_Oper  = 4'b0001,
-               SLT_Oper  = 4'b0010,
-               SLTU_Oper = 4'b0011,
-               XOR_Oper  = 4'b0100,
-               SRL_Oper  = 4'b0101,
-               OR_Oper   = 4'b0110,
-               AND_Oper  = 4'b0111,
-               SUB_Oper  = 4'b1000,
-               SRA_Oper  = 4'b1101;
     
     adder64 inst0(
         .A(a),
@@ -90,7 +90,7 @@ module alu_64_bit(
         .S(sra_ans)
     );
     wire overflow;
-    assign overflow = (A[63] ^ B[63]) & (add_ans[63] ^ A[63]);
+    assign overflow = (a[63] ^ b[63]) & (add_ans[63] ^ a[63]);
     assign slt_ans = {63'b0, add_ans[63] ^ overflow}; 
     assign sltu_ans = {63'b0, ~cout}; // if borrow is happening, A < B and borrow = ~cout, where cout is the final bit carry of the 64 bit adder
     always @(*) begin

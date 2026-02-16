@@ -1,14 +1,14 @@
 `timescale 1ns/1ps
-`include "add64.v"
-`include "shift_left.v"
-`include "xor64.v"
-`include "shift_right.v"
-`include "or64.v"
-`include "and64.v"
-`include "shift_right_arithmetic.v"
-`include "cla.v"
-`include "pg_block.v"
-`include "helper.v"
+`include "ALU/add64.v"
+`include "ALU/shift_left.v"
+`include "ALU/xor64.v"
+`include "ALU/shift_right.v"
+`include "ALU/or64.v"
+`include "ALU/and64.v"
+`include "ALU/shift_right_arithmetic.v"
+`include "ALU/cla.v"
+`include "ALU/pg_block.v"
+`include "ALU/helper.v"
 
 module alu_64_bit(
     input [63:0] a, b,

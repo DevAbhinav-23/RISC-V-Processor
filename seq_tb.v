@@ -49,6 +49,27 @@ module processor_tb;
         $display("Execution Complete!");
         $display("========================================");
         $display("");
+        
+        // Write register values to file in hexadecimal
+        begin
+            integer reg_file;
+            reg_file = $fopen("registers.txt", "w");
+            if (reg_file) begin
+                $fdisplay(reg_file, "========================================");
+                $fdisplay(reg_file, "Final Register Values (Hexadecimal):");
+                $fdisplay(reg_file, "========================================");
+                $fdisplay(reg_file, "  x5 = 0x%016h (expected: 0x0000000000000005)", processor.reg_file_inst.registers[5]);
+                $fdisplay(reg_file, "  x6 = 0x%016h (expected: 0x000000000000000A)", processor.reg_file_inst.registers[6]);
+                $fdisplay(reg_file, "  x7 = 0x%016h (expected: 0x000000000000000F)", processor.reg_file_inst.registers[7]);
+                $fdisplay(reg_file, "  x8 = 0x%016h (expected: 0x0000000000000014)", processor.reg_file_inst.registers[8]);
+                $fdisplay(reg_file, "========================================");
+                $fclose(reg_file);
+                $display("Register values written to registers.txt");
+            end else begin
+                $display("ERROR: Could not open registers.txt for writing");
+            end
+        end
+        
         $display("Final Register Values:");
         $display("  x5 = %0d (expected: 5)", $signed(processor.reg_file_inst.registers[5]));
         $display("  x6 = %0d (expected: 10)", $signed(processor.reg_file_inst.registers[6]));

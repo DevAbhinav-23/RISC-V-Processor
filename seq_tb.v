@@ -58,7 +58,7 @@ module seq_tb;
 
     always @(posedge clk) begin
         if (!reset)
-            cycle_count <= cycle_count;
+            cycle_count <= cycle_count +1;
     end
 
     always @(posedge clk)

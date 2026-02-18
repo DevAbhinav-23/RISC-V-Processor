@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "instruction_mem.v"
 
 module instruction_mem_tb;
@@ -6,7 +8,6 @@ module instruction_mem_tb;
     reg [11:0] addr;
     wire [31:0] instr;
 
-    // Instantiate the Unit Under Test (UUT)
     instruction_mem uut (
         .clk(clk),
         .reset(reset),
@@ -14,20 +15,16 @@ module instruction_mem_tb;
         .instr(instr)
     );
 
-    // Clock generation (period = 10ns)
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
 
-    // Create a test instructions file
     integer file;
     
     initial begin
-        // Create test instructions file
         file = $fopen("test_instructions.txt", "w");
         
-        // Write some test instructions (4 bytes each)
         // Instruction 0: 0x00500113 = addi x2, x0, 5
         $fwrite(file, "%h\n", 8'h00);
         $fwrite(file, "%h\n", 8'h50);
@@ -57,20 +54,16 @@ module instruction_mem_tb;
         $display("Created test_instructions.txt");
     end
 
-    // Test sequence
     initial begin
-        // Wait for file creation
         #1;
         
         $display("========================================");
         $display("Instruction Memory Test Bench");
         $display("========================================");
 
-        // Initialize
         reset = 0;
         addr = 12'h000;
 
-        // Wait for memory initialization
         #10;
 
         // Test 1: Read instruction at address 0

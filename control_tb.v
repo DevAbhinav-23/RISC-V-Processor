@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+`include "control.v"
+
 module control_tb;
     reg [6:0] opcode;
     wire Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite;

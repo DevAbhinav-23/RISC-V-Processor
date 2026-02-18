@@ -14,6 +14,10 @@ module instruction_mem(
     integer r;
 
     initial begin
+
+        for(i=0;i<`IMEM_SIZE;i=i+1)
+            mem[i] = 8'b0;
+
         file = $fopen("instructions.txt","r");
 
          if (file == 0) begin

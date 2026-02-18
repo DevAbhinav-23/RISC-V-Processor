@@ -66,7 +66,7 @@ module seq_tb;
                 for (k = 0; k < 32; k = k + 1)
                     $fdisplay(fh, "%h", uut.reg_file_inst.registers[k]);
 
-                $fdisplay(fh, "%0d", cycle_count + 1);
+                $fdisplay(fh, "%0d", cycle_count + 1); // displaying + 1 bcz we fetched all 0s instruction in a clk cycle too
 
                 $fclose(fh);
 

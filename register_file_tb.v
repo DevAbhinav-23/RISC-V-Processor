@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "register_file.v"
 
 module register_file_tb;
@@ -24,19 +26,16 @@ module register_file_tb;
         .output2_r(output2_r)
     );
 
-    // Clock generation
     initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end
 
-    // Test sequence
     initial begin
         $display("========================================");
         $display("Register File Test Bench");
         $display("========================================");
 
-        // Initialize
         reset = 0;
         register_write = 0;
         reg1_r = 5'b0;
@@ -44,7 +43,6 @@ module register_file_tb;
         reg1_w = 5'b0;
         data_to_w = 64'b0;
 
-        // Test 1: Reset
         $display("\nTest 1: Reset");
         reset = 1;
         #10;
@@ -55,7 +53,6 @@ module register_file_tb;
         $display("After reset: reg1=%0d, output1_r=%0d (expected 0)", reg1_r, output1_r);
         $display("After reset: reg2=%0d, output2_r=%0d (expected 0)", reg2_r, output2_r);
 
-        // Test 2: Write to register and read back
         $display("\nTest 2: Write and Read");
         @(posedge clk);
         reg1_w = 5'd5;
@@ -67,7 +64,6 @@ module register_file_tb;
         #5;
         $display("Write 0x%h to reg5, Read reg5: 0x%h", data_to_w, output1_r);
 
-        // Test 3: Write to another register, read both
         $display("\nTest 3: Multiple registers");
         @(posedge clk);
         reg1_w = 5'd10;
@@ -81,7 +77,6 @@ module register_file_tb;
         $display("Read reg5: 0x%h (expected 0xDEADBEEFCAFEBABE)", output1_r);
         $display("Read reg10: 0x%h (expected 0x123456789ABCDEF0)", output2_r);
 
-        // Test 4: x0 should always be 0
         $display("\nTest 4: x0 hardwired to 0");
         @(posedge clk);
         reg1_w = 5'd0;
@@ -93,7 +88,6 @@ module register_file_tb;
         #5;
         $display("Write to x0, Read x0: 0x%h (expected 0x0000000000000000)", output1_r);
 
-        // Test 5: Simultaneous read and write to same register
         $display("\nTest 5: Read old data during write");
         @(posedge clk);
         reg1_w = 5'd15;
@@ -105,7 +99,6 @@ module register_file_tb;
         #5;
         $display("After write to reg15: 0x%h (expected 0xAAAAAAAA55555555)", output1_r);
 
-        // Test 6: All registers write/read
         $display("\nTest 6: Testing multiple registers");
         @(posedge clk);
         register_write = 0;

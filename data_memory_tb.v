@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 `include "data_memory.v"
 
 module data_memory_tb;

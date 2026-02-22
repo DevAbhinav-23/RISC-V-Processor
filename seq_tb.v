@@ -8,6 +8,7 @@ module seq_tb;
     reg reset;
     integer fh;
     integer k;
+    integer i;
     integer cycle_count;
 
     seq uut (
@@ -35,6 +36,7 @@ module seq_tb;
             cycle_count <= cycle_count + 1;
     end
 
+
     always @(posedge clk)
     begin
         if(!reset)
@@ -49,24 +51,26 @@ module seq_tb;
             if(uut.instruction == 32'h00000000)
             begin
 
+                $display("------ Register File Contents ------");
+
+                for (i = 0; i < 32; i = i + 1)
+                begin
+                    $display("x%0d = %0d",
+                    i,
+                    $signed(uut.reg_file_inst.registers[i]));
+                end
+
+                $display("------------------------------------");
+
+
                 $display("Total cycles = %0d", cycle_count + 1);
 
-                $display("x1  = %0d", $signed(uut.reg_file_inst.registers[1]));
-                $display("x2  = %0d", $signed(uut.reg_file_inst.registers[2]));
-                $display("x3  = %0d", $signed(uut.reg_file_inst.registers[3]));
-                $display("x4  = %0d", $signed(uut.reg_file_inst.registers[4]));
-                $display("x5  = %0d", $signed(uut.reg_file_inst.registers[5]));
-                $display("x6  = %0d", $signed(uut.reg_file_inst.registers[6]));
-                $display("x7  = %0d", $signed(uut.reg_file_inst.registers[7]));
-                $display("x10 = %0d", $signed(uut.reg_file_inst.registers[10]));
-                $display("x11 = %0d", $signed(uut.reg_file_inst.registers[11]));
-                $display("x13 = %0d", $signed(uut.reg_file_inst.registers[13]));
                 fh = $fopen("register.txt", "w");
 
                 for (k = 0; k < 32; k = k + 1)
                     $fdisplay(fh, "%h", uut.reg_file_inst.registers[k]);
 
-                $fdisplay(fh, "%0d", cycle_count + 1); // displaying + 1 bcz we fetched all 0s instruction in a clk cycle too
+                $fdisplay(fh, "%0d", cycle_count + 1);
 
                 $fclose(fh);
 

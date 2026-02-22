@@ -65,7 +65,7 @@ module seq_tb;
 
                 $display("Total cycles = %0d", cycle_count + 1);
 
-                fh = $fopen("register.txt", "w");
+                fh = $fopen("register_file.txt", "w");
 
                 for (k = 0; k < 32; k = k + 1)
                     $fdisplay(fh, "%h", uut.reg_file_inst.registers[k]);

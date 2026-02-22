@@ -87,7 +87,7 @@ module seq(
     );
 
     alu_control alu_control_inst(
-        .alu_op(ALUOp),
+        .ALUOp(ALUOp),
         .instr(instr),
         .alu_c(ALU_ctrl_out)
     );

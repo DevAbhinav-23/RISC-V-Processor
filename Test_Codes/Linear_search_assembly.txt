@@ -1,0 +1,33 @@
+    addi x1, x0, 0
+    addi x4, x0, 10      # First element
+    sd x4, 0(x1)
+    addi x4, x0, 25      # Second element
+    sd x4, 8(x1)
+    addi x4, x0, 15      # Third element
+    sd x4, 16(x1)
+    addi x4, x0, 30      # Fourth element
+    sd x4, 24(x1)
+    addi x4, x0, 5       # Fifth element
+    sd x4, 32(x1)
+    
+    addi x3, x0, 0       # Initialize index to 0
+    addi x5, x0, 5       # Array length
+    add x7, x1, x0       # Calculate current address
+    addi x2, x0, 40      # Element to be found
+
+search_loop:
+    beq x3, x5, 28  # If index == length, element not found
+    
+    ld x8, 0(x7)          # Load current element
+    
+    sub x9, x8, x2        # Compare with search value
+    beq x9, x0, 20     # If equal, element found
+    
+    addi x3, x3, 1        # Increment index
+    addi x7, x7, 1        # Increment address
+    beq x0, x0, -24  # Loop back
+        
+not_found:
+    addi x3, x0, -1       # Set result to -1 (not found)
+    
+done:

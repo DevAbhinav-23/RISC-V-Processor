@@ -24,7 +24,7 @@ search_loop:
     beq x9, x0, 20     # If equal, element found
     
     addi x3, x3, 1        # Increment index
-    addi x7, x7, 1        # Increment address
+    addi x7, x7, 8        # Increment address
     beq x0, x0, -24  # Loop back
         
 not_found:

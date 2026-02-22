@@ -113,7 +113,7 @@ int main() {
             inst |= reg(b) << 15;
 
             if (op == "slli" || op == "srli" || op == "srai")
-                inst |= (info.funct7 << 25) | ((imm & 0x1F) << 20);
+                inst |= (info.funct7 << 25) | ((imm & 0x3F) << 20);
             else
                 inst |= imm << 20;
         }

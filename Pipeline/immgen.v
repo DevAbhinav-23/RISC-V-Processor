@@ -20,7 +20,7 @@ module immgen(
                 imm = {{52{instr[31]}},instr[31:20]};
             end
             7'b1100011: begin
-                imm = {{52{instr[31]}},instr[31],instr[7],instr[30:25],instr[11:8]};
+                imm = {{51{instr[31]}},instr[31],instr[7],instr[30:25],instr[11:8],1'b0};
             end
             default: imm = 64'b0;
         endcase

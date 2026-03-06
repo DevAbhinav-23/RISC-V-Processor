@@ -18,9 +18,7 @@ module register_file(
     assign output1_r = (reg1_r == 5'b0) ? 64'b0 : registers[reg1_r];
     assign output2_r = (reg2_r == 5'b0) ? 64'b0 : registers[reg2_r];
 
-
-
-    always @(posedge clk) begin
+    always @(negedge clk) begin
         if (reset == 1'b1) begin
             for (i = 0; i < `REG_MEM_SIZE; i = i + 1) begin
                 registers[i] <= 64'b0;
@@ -32,7 +30,5 @@ module register_file(
             end
         end
     end
-
-
 
 endmodule

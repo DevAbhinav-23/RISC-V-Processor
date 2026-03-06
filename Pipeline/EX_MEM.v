@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module EM_MEM(
+module EX_MEM(
     input reset, // synchronous active high reset
     input clk, 
     input [63:0] ALU_ans_in,

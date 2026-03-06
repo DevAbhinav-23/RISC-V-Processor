@@ -20,7 +20,7 @@ module EX_MEM(
     output reg [63:0] ALU_rs2_out,
     output reg [4:0] rs2_out
 );
-    always @(*) begin
+    always @(posedge clk) begin
         if(reset) begin
             rd_out <= 5'b0;
             MemtoReg_out <= 1'b0;

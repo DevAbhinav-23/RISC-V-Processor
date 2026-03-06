@@ -10,37 +10,34 @@ module control(
     localparam B    = 7'b1100011;
     localparam S    = 7'b0100011;
 
-    reg [1:0] ALUOp_reg;
-
-    always @(*) begin
-        case(opcode)
-            R:    ALUOp_reg = 2'b10;
-            I:    ALUOp_reg = 2'b11;
-            I_ld: ALUOp_reg = 2'b00;
-            B:    ALUOp_reg = 2'b01;
-            S:    ALUOp_reg = 2'b00;
-            default: ALUOp_reg = 2'b00;
-        endcase
-    end
-
     always @(*) begin
         if(opcode != 7'b0) begin
-            ALUOp   = ALUOp_reg;
-            ALUSrc  = ~(ALUOp_reg[0] ^ ALUOp_reg[1]);
-            Branch  = (~ALUOp_reg[1]) & ALUOp_reg[0];
-            MemRead = ~((ALUOp_reg[1] | ALUOp_reg[0])) & (~opcode[5]);
-            MemtoReg= ~((ALUOp_reg[1] | ALUOp_reg[0]));
-            MemWrite= ~((ALUOp_reg[1] | ALUOp_reg[0])) & (opcode[5]);
-            RegWrite= (~((ALUOp_reg[1] | ALUOp_reg[0])) & (~opcode[5])) | ALUOp_reg[1];
+
+            case(opcode)
+                R:    ALUOp = 2'b10;
+                I:    ALUOp = 2'b11;
+                I_ld: ALUOp = 2'b00;
+                B:    ALUOp = 2'b01;
+                S:    ALUOp = 2'b00;
+                default: ALUOp = 2'b00;
+            endcase
+
+            ALUSrc   = ~(ALUOp[0] ^ ALUOp[1]);
+            Branch   = (~ALUOp[1]) & ALUOp[0];
+            MemRead  = ~((ALUOp[1] | ALUOp[0])) & (~opcode[5]);
+            MemtoReg = ~((ALUOp[1] | ALUOp[0]));
+            MemWrite = ~((ALUOp[1] | ALUOp[0])) & (opcode[5]);
+            RegWrite = (~((ALUOp[1] | ALUOp[0])) & (~opcode[5])) | ALUOp[1];
+
         end
         else begin
-            ALUOp   = 2'b00;
-            ALUSrc  = 1'b0;
-            Branch  = 1'b0;
-            MemRead = 1'b0;
-            MemtoReg= 1'b0;
-            MemWrite= 1'b0;
-            RegWrite= 1'b0;
+            ALUOp    = 2'b00;
+            ALUSrc   = 1'b0;
+            Branch   = 1'b0;
+            MemRead  = 1'b0;
+            MemtoReg = 1'b0;
+            MemWrite = 1'b0;
+            RegWrite = 1'b0;
         end
     end
 

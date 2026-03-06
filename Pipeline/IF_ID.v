@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module IF_IF(
+module IF_ID(
     input reset, // synchronous active high reset
     input clk,
     input flush,
@@ -12,8 +12,8 @@ module IF_IF(
 );
     always@(posedge clk) begin
         if(reset) begin
-            PC_out = 64'b0;
-            inst_out = 32'b0;
+            PC_out <= 64'b0;
+            inst_out <= 32'b0;
         end
         if(!stall) begin
             PC_out <= PC_in;

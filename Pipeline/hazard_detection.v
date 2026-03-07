@@ -4,6 +4,7 @@
 module hazard_detection(
     input [4:0] rs1_IFID,
     input [4:0] rs2_IFID,
+    input Branch_IFID,
     input [4:0] rd_IDEX,
     input MemRead_IDEX,
     input [4:0] rd_EXMEM,
@@ -13,7 +14,7 @@ module hazard_detection(
     always @(*) begin
         if(MemRead_IDEX && (rd_IDEX != 5'b0) && ((rd_IDEX == rs1_IFID) || (rd_IDEX == rs2_IFID)))
             stall = 1'b1;
-        else if(MemRead_EXMEM && (rd_EXMEM != 5'b0) && ((rd_EXMEM == rs1_IFID) || (rd_EXMEM == rs2_IFID)))
+        else if(Branch_IFID && MemRead_EXMEM && (rd_EXMEM != 5'b0) && ((rd_EXMEM == rs1_IFID) || (rd_EXMEM == rs2_IFID)))
             stall = 1'b1;
         else
             stall = 1'b0;

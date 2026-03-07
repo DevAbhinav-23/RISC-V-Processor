@@ -63,7 +63,7 @@ module ID_EX(
             MemWrite_out      <= MemWrite_in;
             RegWrite_out      <= RegWrite_in;
             rs2_out           <= rs2_in;
-            rs1_out           <= rs1_in
+            rs1_out           <= rs1_in;
         end
     end
 endmodule

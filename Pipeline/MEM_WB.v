@@ -11,7 +11,7 @@ module MEM_WB(
     input [63:0] readdata_in,
     output reg RegWrite_out,
     output reg MemtoReg_out,
-    output reg MemRead_out
+    output reg MemRead_out,
     output reg [4:0] rd_out,
     output reg [63:0] ALU_result_out,
     output reg [63:0] readdata_out

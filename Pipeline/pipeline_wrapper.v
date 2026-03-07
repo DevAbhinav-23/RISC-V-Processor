@@ -25,7 +25,7 @@ module pipeline(
 );
     wire temp1, temp2; // adders carry flag temp floating wires
     wire pc_ctrl;
-    wire [63:0] pc_in, pc_out;
+    wire [63:0] pc_in, pc_out, final_pc_in;
     wire [63:0] pc_adder_out, branch_adder_out;
     wire [63:0] immgen_out; // goes into ID/EX
     wire [31:0] IF_ID_instr; // funct3, funct7's one bit and rd and rs2 addresses go into this
@@ -55,6 +55,27 @@ module pipeline(
     wire [63:0] data_to_write;
     wire [63:0] read_data_memory, read_data_memory_wb;
     wire [63:0] datamemory_in;
+    wire stall;
+
+    hazard_detection hazard_detection_inst(
+        .rs1_IFID(IF_ID_instr[19:15]),
+        .rs2_IFID(IF_ID_instr[24:20]),
+        .Branch_IFID(Branch),
+        .rd_IDEX(rd_ex),
+        .MemRead_IDEX(MemRead_ex),
+        .rd_EXMEM(rd_mem),
+        .MemRead_EXMEM(MemRead_mem),
+        .stall(stall)
+    );
+
+    wire idex_MemRead = stall ? 1'b0 : MemRead;
+    wire idex_MemtoReg = stall ? 1'b0 : MemtoReg;
+    wire idex_MemWrite = stall ? 1'b0 : MemWrite;
+    wire idex_ALUSrc = stall ? 1'b0 : ALUSrc;
+    wire idex_RegWrite = stall ? 1'b0 : RegWrite;
+    wire [1:0] idex_ALUOp = stall ? 2'b00 : ALUOp;
+
+    assign final_pc_in = stall ? pc_out : pc_in;
 
     mux pc_mux(
         .a(pc_adder_out),
@@ -90,8 +111,7 @@ module pipeline(
         .C(xor_ans)
     );
 
-    wire zero_flag;
-    assign zero_flag = (xor_ans == 64'b0);
+    wire zero_flag = (xor_ans == 64'b0);
     assign pc_ctrl = zero_flag & Branch;
 
     mux_4x1 branchfwdA(
@@ -113,8 +133,8 @@ module pipeline(
     branch_forwarding_unit b_fwd(
         .rs1(IF_ID_instr[19:15]),
         .rs2(IF_ID_instr[24:20]),
+        .rd_IDEX(rd_ex),
         .rd_EXMEM(rd_mem),
-        .rd_MEMWB(rd_wb),
         .RegWrite_IDEX(RegWrite_ex),
         .RegWrite_EXMEM(RegWrite_mem),
         .fwdA(sel_br_a),
@@ -140,14 +160,14 @@ module pipeline(
 
     mux ALUmux(
         .a(fwd_B),
-        .b(immgen_out),
+        .b(imm_out_ex),
         .sel(ALUSrc_ex),
         .out(ALU_mux_out)
     );
 
     mux_4x1 fwdA(
         .a(read1_ex),
-        .b(ALU_result_wb),
+        .b(data_to_write),
         .c(ALU_result_mem),
         .sel(sel_a),
         .out(fwd_A)
@@ -155,7 +175,7 @@ module pipeline(
 
     mux_4x1 fwdB(
         .a(read2_ex),
-        .b(ALU_result_wb),
+        .b(data_to_write),
         .c(ALU_result_mem),
         .sel(sel_b),
         .out(fwd_B)
@@ -200,7 +220,7 @@ module pipeline(
     pc pc_inst(
         .clk(clk),
         .reset(reset),
-        .pc_in(pc_in),
+        .pc_in(final_pc_in),
         .pc_out(pc_out)
     );
 
@@ -233,8 +253,8 @@ module pipeline(
     IF_ID IF_ID_register(
         .reset(reset),
         .clk(clk),
-        .flush(),
-        .stall(),
+        .flush(pc_ctrl), // basically, one flushes if branch is true kada, so, pc_ctrl signal is indicating to flush simple!
+        .stall(stall),
         .PC_in(pc_out),
         .inst_in(instruction),
         .PC_out(IF_ID_pc),
@@ -251,12 +271,12 @@ module pipeline(
         .rd_in(IF_ID_instr[11:7]),
         .rs1_in(IF_ID_instr[19:15]),
         .rs2_in(IF_ID_instr[24:20]),
-        .ALUOp_in(ALUOp),
-        .ALUSrc_in(ALUSrc),
-        .MemRead_in(MemRead),
-        .MemtoReg_in(MemtoReg),
-        .MemWrite_in(MemWrite),
-        .RegWrite_in(RegWrite),
+        .ALUOp_in(idex_ALUOp),
+        .ALUSrc_in(idex_ALUSrc),
+        .MemRead_in(idex_MemRead),
+        .MemtoReg_in(idex_MemtoReg),
+        .MemWrite_in(idex_MemWrite),
+        .RegWrite_in(idex_RegWrite),
         .read_data1_out(read1_ex),
         .read_data2_out(read2_ex),
         .imm_out(imm_out_ex),

@@ -9,6 +9,7 @@ module ID_EX(
     input [63:0] imm_in,
     input [3:0] funct_in,
     input [4:0] rd_in,
+    input [4:0] rs1_in,
     input [4:0] rs2_in,
 
     input [1:0] ALUOp_in,
@@ -23,6 +24,7 @@ module ID_EX(
     output reg [63:0] imm_out,
     output reg [3:0] funct_out,
     output reg [4:0] rd_out,
+    output reg [4:0] rs1_out,
     output reg [4:0] rs2_out,
 
     output reg [1:0] ALUOp_out,
@@ -45,13 +47,14 @@ module ID_EX(
             MemtoReg_out      <= 1'b0;
             MemWrite_out      <= 1'b0;
             RegWrite_out      <= 1'b0;
-            rd2_out           <= 5'b0;
+            rs2_out           <= 5'b0;
+            rs1_out           <= 5'b0;
         end
         else begin
             read_data1_out    <= read_data1_in;
             read_data2_out    <= read_data2_in;
             imm_out           <= imm_in;
-            funct_out          <= funct_in;
+            funct_out         <= funct_in;
             rd_out            <= rd_in;
             ALUOp_out         <= ALUOp_in;
             ALUSrc_out        <= ALUSrc_in;
@@ -60,6 +63,7 @@ module ID_EX(
             MemWrite_out      <= MemWrite_in;
             RegWrite_out      <= RegWrite_in;
             rs2_out           <= rs2_in;
+            rs1_out           <= rs1_in
         end
     end
 endmodule

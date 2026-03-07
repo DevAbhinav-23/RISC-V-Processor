@@ -6,7 +6,7 @@ module branch_forwarding_unit(
     input [4:0] rs1,
     input [4:0] rs2,
     input [4:0] rd_EXMEM,
-    input [4:0] rd_IDEX
+    input [4:0] rd_IDEX,
     input RegWrite_IDEX,
     input RegWrite_EXMEM,
     output reg [1:0] fwdA,

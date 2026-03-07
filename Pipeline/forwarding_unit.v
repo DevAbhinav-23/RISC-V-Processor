@@ -15,10 +15,10 @@ module forwarding_unit(
     always @(*) begin
         if(RegWrite_EXMEM && (rd_EXMEM != 5'b0) && (rd_EXMEM == rs1)) fwdA = 2'b10; 
         else if(RegWrite_MEMWB && (rd_MEMWB != 5'b0) && (rd_MEMWB == rs1)) fwdA = 2'b01;
-        else fwdA = b'00;
+        else fwdA = 2'b00;
 
         if(RegWrite_EXMEM && (rd_EXMEM != 5'b0) && (rd_EXMEM == rs2)) fwdB = 2'b10;
         else if(RegWrite_MEMWB && (rd_MEMWB != 5'b0) && (rd_MEMWB == rs2)) fwdB = 2'b01;
-        else fwdB = b'00;
+        else fwdB = 2'b00;
     end
 endmodule

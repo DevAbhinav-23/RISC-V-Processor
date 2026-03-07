@@ -34,7 +34,7 @@ module pipeline(
     wire Branch, MemRead, MemtoReg, MemWrite, ALUSrc, RegWrite; // control block outputs which go into ID/EX (all go except branch)
     wire [1:0] ALUOp; // 2 bit output of the control block which also goes into ID/EX
     wire [1:0] sel_br_a, sel_br_b, sel_a, sel_b;
-    wire [63:0] ALU_mux_out, fwd_A, fwd_B,
+    wire [63:0] ALU_mux_out, fwd_A, fwd_B;
     wire [3:0] ALU_ctrl_out; // ALU's opcode kind of thing
     wire [31:0] instruction;
     wire ef_mux_select;
@@ -53,7 +53,7 @@ module pipeline(
     wire [4:0] rd_wb;
     wire [63:0] ALU_result_wb;
     wire [63:0] data_to_write;
-    wire [63:0] read_data_memory;
+    wire [63:0] read_data_memory, read_data_memory_wb;
     wire [63:0] datamemory_in;
 
     mux pc_mux(
@@ -118,11 +118,11 @@ module pipeline(
         .RegWrite_IDEX(RegWrite_ex),
         .RegWrite_EXMEM(RegWrite_mem),
         .fwdA(sel_br_a),
-        .fwdB(sel_br_a)
+        .fwdB(sel_br_b)
     );
 
     control ctrl_inst(
-        .opcode(opcode),
+        .opcode(IF_ID_instr[6:0]),
         .Branch(Branch),
         .MemRead(MemRead),
         .MemtoReg(MemtoReg),
@@ -206,7 +206,7 @@ module pipeline(
 
     mux WB_mux(
         .a(ALU_result_wb),
-        .b(read_data_memory),
+        .b(read_data_memory_wb),
         .sel(MemtoReg_wb),
         .out(data_to_write)
     );
@@ -228,7 +228,7 @@ module pipeline(
         .RegWrite_EXMEM(RegWrite_mem),
         .fwdA(sel_a),
         .fwdB(sel_b)
-    )
+    );
 
     IF_ID IF_ID_register(
         .reset(reset),
@@ -270,7 +270,7 @@ module pipeline(
         .MemtoReg_out(MemtoReg_ex),
         .MemWrite_out(MemWrite_ex),
         .RegWrite_out(RegWrite_ex)
-    )
+    );
 
     EX_MEM EX_MEM_register(
         .reset(reset),
@@ -291,7 +291,7 @@ module pipeline(
         .MemtoReg_out(MemtoReg_mem),
         .MemWrite_out(MemWrite_mem),
         .RegWrite_out(RegWrite_mem)
-    )
+    );
 
     MEM_WB MEM_WB_register(
         .reset(reset),
@@ -301,17 +301,17 @@ module pipeline(
         .MemRead_in(MemRead_mem),
         .rd_in(rd_mem),
         .ALU_result_in(ALU_result_mem),
-        .readdata_in(),
+        .readdata_in(read_data_memory),
         .RegWrite_out(RegWrite_wb),
         .MemtoReg_out(MemtoReg_wb),
         .MemRead_out(MemRead_wb),
         .rd_out(rd_wb),
         .ALU_result_out(ALU_result_wb),
-        .readdata_out(read_data_memory)
-    )
+        .readdata_out(read_data_memory_wb)
+    );
 
     mux extra_ld_mux(
-        .a(ALU_result_mem),
+        .a(ALU_rs2_mem),
         .b(data_to_write),
         .sel(ef_mux_select),
         .out(datamemory_in)

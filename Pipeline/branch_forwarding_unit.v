@@ -15,10 +15,10 @@ module branch_forwarding_unit(
     always @(*) begin
         if(RegWrite_IDEX && (rd_IDEX != 5'b0) && (rd_IDEX == rs1)) fwdA = 2'b10;
         else if(RegWrite_EXMEM && (rd_EXMEM != 5'b0) && (rd_EXMEM == rs1)) fwdA = 2'b01; 
-        else fwdA = b'00;
+        else fwdA = 2'b00;
 
         if(RegWrite_IDEX && (rd_IDEX != 5'b0) && (rd_IDEX == rs2)) fwdB = 2'b10;
         else if(RegWrite_EXMEM && (rd_EXMEM != 5'b0) && (rd_EXMEM == rs2)) fwdB = 2'b01;
-        else fwdB = b'00;
+        else fwdB = 2'b00;
     end
 endmodule

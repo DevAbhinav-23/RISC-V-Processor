@@ -260,7 +260,7 @@ module pipeline(
     IF_ID IF_ID_register(
         .reset(reset),
         .clk(clk),
-        .flush(pc_ctrl), // basically, one flushes if branch is true kada, so, pc_ctrl signal is indicating to flush simple!
+        .flush(pc_ctrl & !stall), // basically, one flushes if branch is true and u make sure u r not stalling because when stall is 1, the crct inputs are there to compare 
         .stall(stall),
         .PC_in(pc_out),
         .inst_in(instruction),

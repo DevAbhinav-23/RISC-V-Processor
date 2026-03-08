@@ -64,6 +64,7 @@ module pipeline(
         .MemWrite_IFID(MemWrite),
         .rd_IDEX(rd_ex),
         .MemRead_IDEX(MemRead_ex),
+        .RegWrite_IDEX(RegWrite_ex),
         .rd_EXMEM(rd_mem),
         .MemRead_EXMEM(MemRead_mem),
         .stall(stall)
@@ -118,7 +119,7 @@ module pipeline(
     mux_4x1 branchfwdA(
         .a(read1),
         .b(ALU_result_mem),
-        .c(ALU_result),
+        .c(64'b0),
         .d(data_to_write),
         .sel(sel_br_a),
         .out(branchfwd_A)
@@ -127,7 +128,7 @@ module pipeline(
     mux_4x1 branchfwdB(
         .a(read2),
         .b(ALU_result_mem),
-        .c(ALU_result),
+        .c(64'b0),
         .d(data_to_write),
         .sel(sel_br_b),
         .out(branchfwd_B)
@@ -136,11 +137,11 @@ module pipeline(
     branch_forwarding_unit b_fwd(
         .rs1(IF_ID_instr[19:15]),
         .rs2(IF_ID_instr[24:20]),
-        .rd_IDEX(rd_ex),
+        // .rd_IDEX(rd_ex),
         .rd_EXMEM(rd_mem),
         .rd_MEMWB(rd_wb),
         .RegWrite_MEMWB(RegWrite_wb),
-        .RegWrite_IDEX(RegWrite_ex),
+        // .RegWrite_IDEX(RegWrite_ex),
         .RegWrite_EXMEM(RegWrite_mem),
         .fwdA(sel_br_a),
         .fwdB(sel_br_b)

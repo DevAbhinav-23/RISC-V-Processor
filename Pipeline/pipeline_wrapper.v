@@ -118,6 +118,7 @@ module pipeline(
         .a(read1),
         .b(ALU_result_mem),
         .c(ALU_result),
+        .d(data_to_write),
         .sel(sel_br_a),
         .out(branchfwd_A)
     );
@@ -126,6 +127,7 @@ module pipeline(
         .a(read2),
         .b(ALU_result_mem),
         .c(ALU_result),
+        .d(data_to_write),
         .sel(sel_br_b),
         .out(branchfwd_B)
     );
@@ -135,6 +137,8 @@ module pipeline(
         .rs2(IF_ID_instr[24:20]),
         .rd_IDEX(rd_ex),
         .rd_EXMEM(rd_mem),
+        .rd_MEMWB(rd_wb),
+        .RegWrite_MEMWB(RegWrite_wb),
         .RegWrite_IDEX(RegWrite_ex),
         .RegWrite_EXMEM(RegWrite_mem),
         .fwdA(sel_br_a),
@@ -169,6 +173,7 @@ module pipeline(
         .a(read1_ex),
         .b(data_to_write),
         .c(ALU_result_mem),
+        .d(64'b0),
         .sel(sel_a),
         .out(fwd_A)
     );
@@ -177,6 +182,7 @@ module pipeline(
         .a(read2_ex),
         .b(data_to_write),
         .c(ALU_result_mem),
+        .d(64'b0),
         .sel(sel_b),
         .out(fwd_B)
     );

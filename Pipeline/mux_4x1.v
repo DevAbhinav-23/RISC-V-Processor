@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 module mux_4x1(
-    input [63:0] a,b,c,
+    input [63:0] a,b,c,d,
     input [1:0] sel,
     output reg [63:0] out
 );
@@ -16,7 +16,7 @@ module mux_4x1(
             out = c;
         end
         else begin
-            out = 64'b0;
+            out = d;
         end
     end
 endmodule

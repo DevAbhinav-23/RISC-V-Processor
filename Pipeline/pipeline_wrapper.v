@@ -16,7 +16,7 @@
 `include "MEM_WB.v"
 `include "forwarding_unit.v"
 `include "extra_forward_unit.v"
-`include "branch_forward_unit.v"
+`include "branch_forwarding_unit.v"
 `include "hazard_detection.v"
 
 module pipeline(

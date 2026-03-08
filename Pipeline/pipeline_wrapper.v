@@ -61,6 +61,7 @@ module pipeline(
         .rs1_IFID(IF_ID_instr[19:15]),
         .rs2_IFID(IF_ID_instr[24:20]),
         .Branch_IFID(Branch),
+        .MemWrite_IFID(MemWrite),
         .rd_IDEX(rd_ex),
         .MemRead_IDEX(MemRead_ex),
         .rd_EXMEM(rd_mem),

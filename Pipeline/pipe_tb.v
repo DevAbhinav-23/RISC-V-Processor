@@ -36,7 +36,7 @@ module pipe_tb;
             cycle_count <= cycle_count + 1;
     end
 
-    always @(posedge clk)
+    always @(negedge clk)
     begin
         if(!reset)
         begin

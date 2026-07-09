@@ -114,7 +114,8 @@ module pipeline(
     );
 
     wire zero_flag = (xor_ans == 64'b0);
-    assign pc_ctrl = zero_flag & Branch;
+    wire branch_ok = (IF_ID_instr[14:12] == 3'b000) ? zero_flag : !zero_flag; 
+    assign pc_ctrl = branch_ok & Branch;
 
     mux_4x1 branchfwdA(
         .a(read1),

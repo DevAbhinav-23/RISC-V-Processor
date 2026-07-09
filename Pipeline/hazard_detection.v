@@ -12,6 +12,7 @@ module hazard_detection(
     input RegWrite_IDEX,
     input [4:0] rd_EXMEM,
     input MemRead_EXMEM,
+    input jalr_IFID,
     output reg stall
 );
     always @(*) begin
@@ -22,6 +23,10 @@ module hazard_detection(
         else if(Branch_IFID && RegWrite_IDEX && (rd_IDEX != 5'b0) && ((rd_IDEX == rs1_IFID) || (rd_IDEX == rs2_IFID))) // arithmetic beq
             stall = 1'b1;
         else if(Branch_IFID && MemRead_EXMEM && (rd_EXMEM != 5'b0) && ((rd_EXMEM == rs1_IFID) || (rd_EXMEM == rs2_IFID))) // ld beq
+            stall = 1'b1;
+        else if(is_jalr_IFID && RegWrite_IDEX && (rd_IDEX != 5'b0) && (rd_IDEX == rs1_IFID))
+            stall = 1'b1;
+        else if(is_jalr_IFID && MemRead_EXMEM && (rd_EXMEM != 5'b0) && (rd_EXMEM == rs1_IFID))
             stall = 1'b1;
         else
             stall = 1'b0;

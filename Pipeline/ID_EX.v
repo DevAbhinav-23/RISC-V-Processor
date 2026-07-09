@@ -7,6 +7,8 @@ module ID_EX(
     input [63:0] read_data1_in,
     input [63:0] read_data2_in,
     input [63:0] imm_in,
+    input [63:0] return_pc_in,
+    input jump_in,
     input [3:0] funct_in,
     input [4:0] rd_in,
     input [4:0] rs1_in,
@@ -22,6 +24,8 @@ module ID_EX(
     output reg [63:0] read_data1_out,
     output reg [63:0] read_data2_out,
     output reg [63:0] imm_out,
+    output reg [63:0] return_pc_out,
+    output reg jump_out,
     output reg [3:0] funct_out,
     output reg [4:0] rd_out,
     output reg [4:0] rs1_out,
@@ -49,6 +53,8 @@ module ID_EX(
             RegWrite_out      <= 1'b0;
             rs2_out           <= 5'b0;
             rs1_out           <= 5'b0;
+            return_pc_out     <= 64'b0;
+            jump_out          <= 1'b0;
         end
         else begin
             read_data1_out    <= read_data1_in;
@@ -64,6 +70,8 @@ module ID_EX(
             RegWrite_out      <= RegWrite_in;
             rs2_out           <= rs2_in;
             rs1_out           <= rs1_in;
+            return_pc_out     <= return_pc_in;
+            jump_out          <= jump_in;
         end
     end
 endmodule

@@ -24,7 +24,7 @@ module pipeline(
     input reset
 );
     wire temp1, temp2; // adders carry flag temp floating wires
-    wire pc_ctrl;
+    wire [1:0] pc_ctrl;
     wire [63:0] pc_in, pc_out, final_pc_in;
     wire [63:0] pc_adder_out, branch_adder_out;
     wire [63:0] immgen_out; // goes into ID/EX
@@ -56,6 +56,7 @@ module pipeline(
     wire [63:0] read_data_memory, read_data_memory_wb;
     wire [63:0] datamemory_in;
     wire stall;
+    wire jal, jalr;
 
     hazard_detection hazard_detection_inst(
         .rs1_IFID(IF_ID_instr[19:15]),
@@ -67,6 +68,7 @@ module pipeline(
         .RegWrite_IDEX(RegWrite_ex),
         .rd_EXMEM(rd_mem),
         .MemRead_EXMEM(MemRead_mem),
+        .jalr_IFID(jalr),
         .stall(stall)
     );
 
@@ -79,9 +81,11 @@ module pipeline(
 
     assign final_pc_in = stall ? pc_out : pc_in;
 
-    mux pc_mux(
+    mux_4x1 pc_mux(
         .a(pc_adder_out),
         .b(branch_adder_out),
+        .c(jalr_target),
+        .d(64'b0),
         .sel(pc_ctrl),
         .out(pc_in)
     );
@@ -115,7 +119,9 @@ module pipeline(
 
     wire zero_flag = (xor_ans == 64'b0);
     wire branch_ok = (IF_ID_instr[14:12] == 3'b000) ? zero_flag : !zero_flag; 
-    assign pc_ctrl = branch_ok & Branch;
+    assign pc_ctrl = (jalr) ? 2'b10 : // JALR takes jalr_target
+                     (jal || (branch_ok & Branch)) ? 2'b01 : // JAL or Branch takes branch_adder
+                     2'b00; // Normal takes pc_adder
 
     mux_4x1 branchfwdA(
         .a(read1),
@@ -148,6 +154,8 @@ module pipeline(
         .fwdB(sel_br_b)
     );
 
+    wire [63:0] jalr_target = (branchfwd_A + immgen_out) & ~64'b1;
+
     control ctrl_inst(
         .opcode(IF_ID_instr[6:0]),
         .Branch(Branch),
@@ -156,7 +164,9 @@ module pipeline(
         .ALUOp(ALUOp),
         .MemWrite(MemWrite),
         .ALUSrc(ALUSrc),
-        .RegWrite(RegWrite)
+        .RegWrite(RegWrite),
+        .jal(jal),
+        .jalr(jalr)
     );
 
     alu_control alu_control_inst(
@@ -259,16 +269,20 @@ module pipeline(
         .fwdB(sel_b)
     );
 
+    // very important key detail here about when to flush!!!!
     IF_ID IF_ID_register(
         .reset(reset),
         .clk(clk),
-        .flush(pc_ctrl & !stall), // basically, one flushes if branch is true and u make sure u r not stalling because when stall is 1, the crct inputs are there to compare 
+        .flush((pc_ctrl != 2'b00) & !stall), // basically, one flushes if branch is true and u make sure u r not stalling because when stall is 1, the crct inputs are there to compare 
         .stall(stall),
         .PC_in(pc_out),
         .inst_in(instruction),
         .PC_out(IF_ID_pc),
         .inst_out(IF_ID_instr)
     );
+
+    wire [63:0] ID_EX_return_pc;
+    wire ID_EX_jump;
 
     ID_EX ID_EX_register(
         .reset(reset),
@@ -286,6 +300,8 @@ module pipeline(
         .MemtoReg_in(idex_MemtoReg),
         .MemWrite_in(idex_MemWrite),
         .RegWrite_in(idex_RegWrite),
+        .return_pc_in(IF_ID_pc + 64'd4),
+        .jump_in(jal | jalr),
         .read_data1_out(read1_ex),
         .read_data2_out(read2_ex),
         .imm_out(imm_out_ex),
@@ -298,13 +314,17 @@ module pipeline(
         .MemRead_out(MemRead_ex),
         .MemtoReg_out(MemtoReg_ex),
         .MemWrite_out(MemWrite_ex),
-        .RegWrite_out(RegWrite_ex)
+        .RegWrite_out(RegWrite_ex),
+        .return_pc_out(ID_EX_return_pc),
+        .jump_out(ID_EX_jump)
     );
+
+    wire [63:0] actual_ex_ans = ID_EX_jump ? ID_EX_return_pc : ALU_result;
 
     EX_MEM EX_MEM_register(
         .reset(reset),
         .clk(clk),
-        .ALU_ans_in(ALU_result),
+        .ALU_ans_in(actual_ex_ans),
         .ALU_rs2_in(fwd_B),
         .rd_in(rd_ex),
         .rs2_in(rs2_ex),

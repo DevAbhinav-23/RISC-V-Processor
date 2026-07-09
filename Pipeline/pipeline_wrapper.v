@@ -111,14 +111,47 @@ module pipeline(
         .imm(immgen_out)
     );
 
-    xor64 xor_inst(
-        .A(branchfwd_A),
-        .B(branchfwd_B),
-        .C(xor_ans)
-    );
+    // xor64 xor_inst(
+    //     .A(branchfwd_A),
+    //     .B(branchfwd_B),
+    //     .C(xor_ans)
+    // );
 
-    wire zero_flag = (xor_ans == 64'b0);
-    wire branch_ok = (IF_ID_instr[14:12] == 3'b000) ? zero_flag : !zero_flag; 
+    // wire zero_flag = (xor_ans == 64'b0);
+    // wire branch_ok = (IF_ID_instr[14:12] == 3'b000) ? zero_flag : !zero_flag; 
+
+    wire [63:0] B_inv;
+    xor64 b_flip(
+        .A(branchfwd_B),
+        .B({64{1'b1}}),
+        .C(B_inv)
+    );
+    
+    wire cmp_cout;
+    wire [63:0] cmp_diff;
+    adder64 cmp_adder( // subtraction for the comparision required for branch extension
+        .A(branchfwd_A),
+        .B(B_inv),
+        .S(cmp_diff),
+        .Cin(1'b1), 
+        .Cout(cmp_cout)
+    );
+    
+    wire cmp_overflow = (branchfwd_A[63] ^ branchfwd_B[63]) & (cmp_diff[63] ^ branchfwd_A[63]);
+    
+    wire eq = (cmp_diff == 64'b0); // equal to
+    wire lt = cmp_diff[63] ^ cmp_overflow; // signed less than
+    wire ltu = ~cmp_cout; // unsigned less than
+
+    wire [2:0] br_funct3 = IF_ID_instr[14:12];
+    wire branch_ok = (br_funct3 == 3'b000) ? eq : // beq
+                     (br_funct3 == 3'b001) ? !eq : // bne
+                     (br_funct3 == 3'b100) ? lt : // blt
+                     (br_funct3 == 3'b101) ? !lt : // bge
+                     (br_funct3 == 3'b110) ? ltu : // bltu
+                     (br_funct3 == 3'b111) ? !ltu : // bgeu
+                     1'b0;
+
     assign pc_ctrl = (jalr) ? 2'b10 : // JALR takes jalr_target
                      (jal || (branch_ok & Branch)) ? 2'b01 : // JAL or Branch takes branch_adder
                      2'b00; // Normal takes pc_adder

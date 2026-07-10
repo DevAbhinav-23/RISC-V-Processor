@@ -44,7 +44,7 @@ module pipeline(
     wire MemRead_ex,MemtoReg_ex,RegWrite_ex,ALUSrc_ex,MemWrite_ex;
     wire [63:0] imm_out_ex;
     wire [4:0] rd_ex,rs1_ex,rs2_ex;
-    wire [3:0] funct_ex;
+    wire [4:0] funct_ex;
     wire [63:0] ALU_result;
     wire [63:0] ALU_result_mem,ALU_rs2_mem;
     wire [4:0] rd_mem,rs2_mem;
@@ -80,6 +80,9 @@ module pipeline(
     wire [1:0] idex_ALUOp = stall ? 2'b00 : ALUOp;
 
     assign final_pc_in = stall ? pc_out : pc_in;
+
+    wire [63:0] B_inv;
+    wire [63:0] jalr_target;
 
     mux_4x1 pc_mux(
         .a(pc_adder_out),
@@ -120,7 +123,6 @@ module pipeline(
     // wire zero_flag = (xor_ans == 64'b0);
     // wire branch_ok = (IF_ID_instr[14:12] == 3'b000) ? zero_flag : !zero_flag; 
 
-    wire [63:0] B_inv;
     xor64 b_flip(
         .A(branchfwd_B),
         .B({64{1'b1}}),
@@ -187,7 +189,7 @@ module pipeline(
         .fwdB(sel_br_b)
     );
 
-    wire [63:0] jalr_target = (branchfwd_A + immgen_out) & ~64'b1;
+    assign jalr_target = (branchfwd_A + immgen_out) & ~64'b1;
 
     control ctrl_inst(
         .opcode(IF_ID_instr[6:0]),
@@ -323,7 +325,7 @@ module pipeline(
         .read_data1_in(read1),
         .read_data2_in(read2),
         .imm_in(immgen_out),
-        .funct_in({IF_ID_instr[30],IF_ID_instr[14:12]}),
+        .funct_in({IF_ID_instr[30],IF_ID_instr[25],IF_ID_instr[14:12]}),
         .rd_in(IF_ID_instr[11:7]),
         .rs1_in(IF_ID_instr[19:15]),
         .rs2_in(IF_ID_instr[24:20]),

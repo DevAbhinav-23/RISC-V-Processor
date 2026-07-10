@@ -9,7 +9,7 @@ module ID_EX(
     input [63:0] imm_in,
     input [63:0] return_pc_in,
     input jump_in,
-    input [3:0] funct_in,
+    input [4:0] funct_in,
     input [4:0] rd_in,
     input [4:0] rs1_in,
     input [4:0] rs2_in,
@@ -26,7 +26,7 @@ module ID_EX(
     output reg [63:0] imm_out,
     output reg [63:0] return_pc_out,
     output reg jump_out,
-    output reg [3:0] funct_out,
+    output reg [4:0] funct_out,
     output reg [4:0] rd_out,
     output reg [4:0] rs1_out,
     output reg [4:0] rs2_out,
@@ -43,7 +43,7 @@ module ID_EX(
             read_data1_out    <= 64'b0;
             read_data2_out    <= 64'b0;
             imm_out           <= 64'b0;
-            funct_out          <= 4'b0;
+            funct_out          <= 5'b0;
             rd_out            <= 5'b0;
             ALUOp_out         <= 2'b0;
             ALUSrc_out        <= 1'b0;

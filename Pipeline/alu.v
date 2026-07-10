@@ -9,6 +9,7 @@
 `include "ALU/cla.v"
 `include "ALU/pg_block.v"
 `include "ALU/helper.v"
+`include "ALU/mul/booth_wallace_multiplier.v"
 
 module alu_64_bit(
     input [63:0] a, b,
@@ -34,9 +35,10 @@ module alu_64_bit(
                OR_Oper   = 4'b0110,
                AND_Oper  = 4'b0111,
                SUB_Oper  = 4'b1000,
-               SRA_Oper  = 4'b1101;
+               SRA_Oper  = 4'b1101,
+               MUL_Oper  = 4'b1001;
                
-    wire [63:0] add_ans, xor_ans, or_ans, and_ans, sll_ans, srl_ans, sra_ans, slt_ans, sltu_ans;
+    wire [63:0] add_ans, xor_ans, or_ans, and_ans, sll_ans, srl_ans, sra_ans, slt_ans, sltu_ans, mul_ans;
     wire cout;
     // declaring the reg bcz in always block of switch case, cannot assign wires
     reg [63:0] ans;
@@ -87,6 +89,11 @@ module alu_64_bit(
         .B(b),
         .S(sra_ans)
     );
+    booth_wallace_multiplier inst7(
+        .a(a),
+        .b(b),
+        .result(mul_ans)
+    );
     wire overflow;
     assign overflow = (a[63] ^ b[63]) & (add_ans[63] ^ a[63]);
     assign slt_ans = {63'b0, add_ans[63] ^ overflow}; 
@@ -103,6 +110,7 @@ module alu_64_bit(
             AND_Oper: ans = and_ans;
             SUB_Oper: ans = add_ans;
             SRA_Oper: ans = sra_ans;
+            MUL_Oper: ans = mul_ans;
             default: ans = 64'b0;
         endcase
     end

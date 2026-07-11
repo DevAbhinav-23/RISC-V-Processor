@@ -57,7 +57,10 @@ module pipeline(
     wire [63:0] datamemory_in;
     wire stall;
     wire jal, jalr;
+    wire predict_taken;
+    wire predictor_update;
 
+    assign predictor_update = Branch & !stall;
     hazard_detection hazard_detection_inst(
         .rs1_IFID(IF_ID_instr[19:15]),
         .rs2_IFID(IF_ID_instr[24:20]),
@@ -400,4 +403,16 @@ module pipeline(
         .sel(ef_mux_select),
         .out(datamemory_in)
     );
+
+    branch_predictor predictor(
+    .clk(clk),
+    .reset(reset),
+
+    .pc(pc_out),
+    .predict_taken(predict_taken),
+
+    .update(predictor_update),
+    .update_pc(IF_ID_pc),
+    .actual_taken(branch_ok)
+);
 endmodule

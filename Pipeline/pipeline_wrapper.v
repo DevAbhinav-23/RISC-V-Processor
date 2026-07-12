@@ -18,6 +18,8 @@
 `include "extra_forward_unit.v"
 `include "branch_forwarding_unit.v"
 `include "hazard_detection.v"
+`include "branch_predictor.v"
+`include "btb.v"
 
 module pipeline(
     input clk,
@@ -59,6 +61,16 @@ module pipeline(
     wire jal, jalr;
     wire predict_taken;
     wire predictor_update;
+    wire btb_hit;
+    wire [63:0] predicted_target;
+    wire [63:0] predicted_pc;
+    wire IF_ID_predict_taken;
+    wire mispredict;
+    assign mispredict = Branch && (IF_ID_predict_taken != branch_ok);
+
+    wire [63:0] recovery_pc;
+    wire temp3;
+    
 
     assign predictor_update = Branch & !stall;
     hazard_detection hazard_detection_inst(
@@ -88,10 +100,10 @@ module pipeline(
     wire [63:0] jalr_target;
 
     mux_4x1 pc_mux(
-        .a(pc_adder_out),
-        .b(branch_adder_out),
-        .c(jalr_target),
-        .d(64'b0),
+        .a(predicted_pc),       // 00 Normal 
+        .b(branch_adder_out),   // 01 Branch or JAL
+        .c(jalr_target),        // 10 JALR 
+        .d(recovery_pc),        // 11 Recovery for wrong prediction
         .sel(pc_ctrl),
         .out(pc_in)
     );
@@ -157,9 +169,26 @@ module pipeline(
                      (br_funct3 == 3'b111) ? !ltu : // bgeu
                      1'b0;
 
-    assign pc_ctrl = (jalr) ? 2'b10 : // JALR takes jalr_target
-                     (jal || (branch_ok & Branch)) ? 2'b01 : // JAL or Branch takes branch_adder
-                     2'b00; // Normal takes pc_adder
+    assign pc_ctrl =
+    // JALR (always jump to computed register target)
+    (jalr) ? 2'b10 :
+
+    // JAL (always jump to PC + immediate)
+    (jal) ? 2'b01 :
+
+    // Misprediction Case 1:
+    // Predicted NOT TAKEN, but actually TAKEN
+    // Recover by jumping to the actual branch target
+    (Branch && !IF_ID_predict_taken && branch_ok) ? 2'b01 :
+
+    // Misprediction Case 2:
+    // Predicted TAKEN, but actually NOT TAKEN
+    // Recover by going to sequential PC (IF_ID_pc + 4)
+    (Branch && IF_ID_predict_taken && !branch_ok) ? 2'b11 :
+
+    // Correct prediction (or normal instruction)
+    // Continue with predicted_pc selected by mux input 'a'
+    2'b00;
 
     mux_4x1 branchfwdA(
         .a(read1),
@@ -315,8 +344,10 @@ module pipeline(
         .stall(stall),
         .PC_in(pc_out),
         .inst_in(instruction),
+        .predict_taken_in(predict_taken && btb_hit),
         .PC_out(IF_ID_pc),
-        .inst_out(IF_ID_instr)
+        .inst_out(IF_ID_instr),
+        .predict_taken_out(IF_ID_predict_taken)
     );
 
     wire [63:0] ID_EX_return_pc;
@@ -414,5 +445,33 @@ module pipeline(
     .update(predictor_update),
     .update_pc(IF_ID_pc),
     .actual_taken(branch_ok)
-);
+    );
+
+    btb btb_inst(
+    .clk(clk),
+    .reset(reset),
+
+    // Lookup
+    .pc(pc_out),
+    .hit(btb_hit),
+    .predicted_target(predicted_target),
+
+    // Update
+    .update(predictor_update),
+    .update_pc(IF_ID_pc),
+    .update_target(branch_adder_out)
+    );
+
+    assign predicted_pc =
+    (predict_taken && btb_hit) ?
+        predicted_target :
+        pc_adder_out;
+
+    adder64 recovery_adder(
+    .A(IF_ID_pc),
+    .B(64'd4),
+    .S(recovery_pc),
+    .Cin(1'b0),
+    .Cout(temp3)
+    );
 endmodule

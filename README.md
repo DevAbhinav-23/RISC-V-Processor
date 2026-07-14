@@ -103,7 +103,7 @@ The ALU result is used for:
 
 ### Supported Operations
 
-ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU
+ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT, SLTU, MUL
 
 ### Design Optimization
 
@@ -125,9 +125,28 @@ The **Control Unit** decodes the instruction opcode and generates control signal
 
 The **ALU Control module** determines the exact ALU operation based on:
 
-- `ALUOp` from the main control unit
-- instruction fields `funct3`
-- instruction fields `funct7`
+- `ALUOp` (2-bit) from the main control unit
+- `instr` (5-bit) from the instruction's funct fields
+
+### Why 5-bit Input Instead of 4-bit or 3-bit?
+
+The ALU Control input `instr` is encoded as `{funct7[5], funct7[0], funct3[2:0]}` -- a **5-bit** field.
+
+In the original design (without MUL), 4 bits were sufficient: `{funct7[5], funct3[2:0]}`. This could distinguish ADD vs SUB since they differ in `funct7[5]` (bit 30).
+
+However, ADD, SUB, and MUL all share the **same funct3 = 000**:
+
+| Operation | funct7[5] (bit 30) | funct7[0] (bit 25) | 4-bit encoding | 5-bit encoding |
+|-----------|---------------------|---------------------|----------------|----------------|
+| ADD       | 0                   | 0                   | `0000`         | `00_000`        |
+| SUB       | 1                   | 0                   | `1000`         | `10_000`        |
+| MUL       | 0                   | 1                   | `0000`         | `01_000`        |
+
+With only 4 bits, ADD and MUL map to the **same encoding** (`0000`), making them indistinguishable. The 5th bit (`funct7[0]`, instruction bit 25) breaks the tie -- ADD has `funct7[0] = 0` while MUL has `funct7[0] = 1`.
+
+A 3-bit input (funct3 only) would be even worse -- all three operations would collapse to `000`.
+
+Thus, **5 bits is the minimum width required** to uniquely identify ADD, SUB, and MUL.
 
 ---
 
@@ -228,6 +247,35 @@ This reduces pipeline stalls.
 # Branch Forwarding Unit
 
 The **Branch Forwarding Unit** forwards updated register values to the branch comparison logic in the **ID stage**, allowing branches to be resolved earlier.
+
+---
+
+# Multiplication (MUL) Unit
+
+The processor supports the **RISC-V M-extension MUL instruction** (32x32 signed multiply, lower 64 bits of result).
+
+### Implementation
+
+The multiplier uses a **Radix-4 Booth-Encoded Wallace Tree** algorithm:
+
+1. **Booth Encoding** -- The 32-bit multiplier (B) is recoded into 17 signed digits in the set {-2, -1, 0, +1, +2} using radix-4 Booth recoding. This halves the number of partial products compared to a straightforward array multiplier.
+
+2. **Partial Product Generation** -- For each Booth digit, a partial product is generated as `digit * A`, then sign-extended and left-shifted by the appropriate amount.
+
+3. **Wallace Tree Summation** -- All 17 partial products are summed. Synthesis tools infer an optimal Carry-Save Adder (CSA) tree for parallel compression, reducing the critical path.
+
+4. **Result** -- The lower 64 bits of the final sum form the multiplication result.
+
+### Modules
+
+| Module | Description |
+|--------|-------------|
+| `booth_encoder` | Recodes 3-bit groups into Booth digits (sign + 2-bit encode) |
+| `booth_wallace_multiplier` | Top-level multiplier: Booth encoding, partial product generation, and summation |
+
+### Integration
+
+The multiplier is instantiated inside the ALU as `inst7` and selected when the ALU opcode is `MUL_Oper (4'b1001)`. The ALU Control module generates this opcode when `ALUOp = 2'b10` (R-type) and the instruction's funct fields match MUL encoding.
 
 ---
 

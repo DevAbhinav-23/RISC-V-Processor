@@ -369,7 +369,7 @@ module pipeline(
         .MemtoReg_in(idex_MemtoReg),
         .MemWrite_in(idex_MemWrite),
         .RegWrite_in(idex_RegWrite),
-        .return_pc_in(IF_ID_pc + 64'd4),
+        .return_pc_in(recovery_pc),
         .jump_in(jal | jalr),
         .read_data1_out(read1_ex),
         .read_data2_out(read2_ex),

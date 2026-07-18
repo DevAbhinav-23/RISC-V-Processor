@@ -35,10 +35,19 @@ unordered_map<string, InstrInfo> table = {
     {"srli",  {0x13, 0x5, 0x00, 'I'}},
     {"srai",  {0x13, 0x5, 0x20, 'I'}},
 
-    // Load / Store / Branch
-    {"ld",  {0x03, 0x3, 0x00, 'L'}},
-    {"sd",  {0x23, 0x3, 0x00, 'S'}},
-    {"beq", {0x63, 0x0, 0x00, 'B'}}
+    // Load / Store / Branch / Jump
+    {"ld",   {0x03, 0x3, 0x00, 'L'}},
+    {"sd",   {0x23, 0x3, 0x00, 'S'}},
+    {"beq",  {0x63, 0x0, 0x00, 'B'}},
+    {"bne",  {0x63, 0x1, 0x00, 'B'}},
+    {"blt",  {0x63, 0x4, 0x00, 'B'}},
+    {"bge",  {0x63, 0x5, 0x00, 'B'}},
+    {"bltu", {0x63, 0x6, 0x00, 'B'}},
+    {"bgeu", {0x63, 0x7, 0x00, 'B'}},
+    {"jal",  {0x6f, 0x0, 0x00, 'J'}},
+
+    // M-extension
+    {"mul",  {0x33, 0x0, 0x01, 'R'}}
 };
 
 /* ---------------- Helpers ---------------- */
@@ -156,6 +165,19 @@ int main() {
             inst |= reg(b) << 20;
             inst |= ((imm >> 5)  & 0x3F) << 25;
             inst |= ((imm >> 12) & 0x1) << 31;
+        }
+
+        /* -------- Jump (J-type) -------- */
+        else if (info.type == 'J') {
+            ss >> a >> c;
+            int imm = stoi(c);
+
+            inst |= info.opcode;
+            inst |= reg(a) << 7;
+            inst |= ((imm >> 12) & 0xFF) << 12;
+            inst |= ((imm >> 11) & 0x1) << 20;
+            inst |= ((imm >> 1)  & 0x3FF) << 21;
+            inst |= ((imm >> 20) & 0x1) << 31;
         }
 
         emit_big_endian(inst);

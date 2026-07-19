@@ -69,6 +69,96 @@ The pipeline design includes:
 - Pipeline registers
 - Stall and flush control
 - Load-store forwarding unit
+- 2-bit branch predictor with BTB-based target prediction
+
+---
+
+# Branch Prediction Unit
+
+The pipelined processor includes a branch prediction mechanism designed to reduce the penalty of control-flow instructions such as conditional branches. Instead of waiting for the branch outcome in the ID stage before fetching the next instruction, the processor predicts the branch direction early in the IF stage and uses a target buffer to anticipate where execution should continue.
+
+## Overview
+
+The predictor consists of two cooperating structures:
+
+1. A 2-bit Branch History Table (BHT)
+2. A Branch Target Buffer (BTB)
+
+The BHT is used to predict whether a branch will be taken or not taken, while the BTB stores previously seen branch targets so that the processor can predict the destination address as soon as the branch is encountered again.
+
+## 2-bit Branch History Table (BHT)
+
+The Branch History Table is implemented as a small local predictor with 64 entries. Each entry stores a 2-bit saturating counter that represents the recent history of a branch instruction at a given program counter index.
+
+### Structure
+
+- Number of entries: 64
+- Entry width: 2 bits
+- Indexing: derived from the branch instruction address using bits `PC[7:2]`
+- Initial state: `01`, which represents a weakly not-taken prediction
+
+### Prediction Rule
+
+The predictor uses the most significant bit of the 2-bit state to decide if the branch is predicted taken:
+
+- `00` → not taken
+- `01` → not taken (weakly not taken)
+- `10` → taken (weakly taken)
+- `11` → taken (strongly taken)
+
+This is a classic 2-bit saturating counter design. It is less sensitive to single mispredictions than a 1-bit predictor because it requires a branch to be wrong multiple times before changing its confidence dramatically.
+
+### Update Rule
+
+When a branch instruction reaches the ID stage and its actual outcome becomes known, the predictor updates the state for the corresponding branch entry:
+
+- If the branch is taken, the state moves toward the taken side
+- If the branch is not taken, the state moves toward the not-taken side
+- The state is updated in a saturating way so it cannot move beyond the two extreme states
+
+This makes the predictor more stable and prevents it from oscillating too quickly for branches whose behavior is not perfectly regular.
+
+## Branch Target Buffer (BTB)
+
+The Branch Target Buffer is used to predict the branch target address. It stores the target address for previously seen branches and allows the processor to redirect the PC early when a branch is predicted to be taken.
+
+### Structure
+
+- Number of entries: 64
+- Each entry stores:
+  - a valid bit
+  - a tag derived from the upper part of the PC
+  - the predicted target address
+
+### Lookup
+
+The BTB lookup uses the same PC index as the BHT (`PC[7:2]`). If the tag matches and the entry is valid, the BTB signals a hit and provides the predicted target address.
+
+### Update
+
+When a branch is resolved, the BTB entry for the branch PC is updated with the resolved target address. This allows future executions of the same branch to jump directly to the target without waiting for the branch to be resolved again.
+
+## Integration with the Pipeline
+
+The predictor is integrated into the pipeline in the following way:
+
+- During IF, the processor consults the predictor and BTB using the current PC
+- If the branch is predicted taken and the BTB hit is valid, the next PC is set to the predicted target
+- The actual branch outcome is resolved later in ID using the branch comparison logic
+- If the prediction was wrong, the pipeline flushes the incorrectly fetched instruction stream and recovers by redirecting execution to the correct path
+
+This design reduces the branch penalty by allowing the processor to continue fetching along the predicted path instead of stalling immediately after a branch is encountered.
+
+## Behavioral Effect
+
+The branch predictor improves overall pipeline efficiency by:
+
+- reducing stalls caused by unresolved branches
+- allowing earlier target-address selection
+- lowering the average cost of branch instructions
+- supporting better throughput for branch-heavy code
+
+Although this is a relatively simple predictor compared with modern superscalar designs, it provides a practical and effective mechanism for improving the performance of the pipelined RISC-V processor without introducing excessive hardware complexity.
 
 ---
 

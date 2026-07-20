@@ -45,6 +45,7 @@ unordered_map<string, InstrInfo> table = {
     {"bltu", {0x63, 0x6, 0x00, 'B'}},
     {"bgeu", {0x63, 0x7, 0x00, 'B'}},
     {"jal",  {0x6f, 0x0, 0x00, 'J'}},
+    {"jalr", {0x67, 0x0, 0x00, 'I'}},
 
     // M-extension
     {"mul",  {0x33, 0x0, 0x01, 'R'}}
@@ -114,7 +115,12 @@ int main() {
         /* -------- I-type -------- */
         else if (info.type == 'I') {
             ss >> a >> b >> c;
-            int imm = stoi(c) & 0xFFF;
+            int imm;
+            if (op == "jalr") {
+                imm = (stoi(c) >> 1) & 0xFFF;
+            } else {
+                imm = stoi(c) & 0xFFF;
+            }
 
             inst |= info.opcode;
             inst |= reg(a) << 7;

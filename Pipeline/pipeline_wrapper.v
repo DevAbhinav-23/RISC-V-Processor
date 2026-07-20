@@ -221,7 +221,7 @@ module pipeline(
         .fwdB(sel_br_b)
     );
 
-    assign jalr_target = (branchfwd_A + immgen_out) & ~64'b1;
+    assign jalr_target = branchfwd_A + (immgen_out << 1);
 
     control ctrl_inst(
         .opcode(IF_ID_instr[6:0]),

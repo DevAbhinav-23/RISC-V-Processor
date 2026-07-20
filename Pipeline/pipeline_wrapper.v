@@ -66,6 +66,7 @@ module pipeline(
     wire [63:0] predicted_pc;
     wire IF_ID_predict_taken;
     wire mispredict;
+    wire branch_ok;
     assign mispredict = Branch && (IF_ID_predict_taken != branch_ok);
 
     wire [63:0] recovery_pc;
@@ -161,7 +162,7 @@ module pipeline(
     wire ltu = ~cmp_cout; // unsigned less than
 
     wire [2:0] br_funct3 = IF_ID_instr[14:12];
-    wire branch_ok = (br_funct3 == 3'b000) ? eq : // beq
+    assign branch_ok = (br_funct3 == 3'b000) ? eq : // beq
                      (br_funct3 == 3'b001) ? !eq : // bne
                      (br_funct3 == 3'b100) ? lt : // blt
                      (br_funct3 == 3'b101) ? !lt : // bge

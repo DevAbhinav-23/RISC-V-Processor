@@ -1,14 +1,32 @@
-# RISC-V Processor
+# RISC-V Processor: Advanced 5-Stage Pipeline
 
-This project implements a **64-bit RISC-V processor** in Verilog.  
-The processor is developed in two stages:
+This project implements a high-performance **64-bit RISC-V processor** in Verilog.  
+The processor is developed in three progressive stages:
 
 1. **Sequential (Single-Cycle) Processor**
-2. **5-Stage Pipelined Processor**
+2. **Baseline 5-Stage Pipelined Processor**
+3. **Advanced Pipelined Processor** (incorporating all the new features detailed below)
 
-The design supports a subset of the **RISC-V ISA** including R-type, I-type, load/store, and branch instructions.
+The design supports a robust subset of the **RISC-V ISA** including R-type, I-type, load/store, and branch instructions. For exact instruction encoding and ISA reference, please refer to the provided `RISCV_CARD.pdf`.
 
 The processor datapath and control logic are based on the architecture described in *Computer Organization and Design – RISC-V Edition by Patterson and Hennessy*.
+
+## Beyond the Baseline: Major Architectural Improvements
+While the baseline requirements for this project were to build a standard 5-stage pipeline with basic forwarding, load-use hazard stalling, and static "always not-taken" branch prediction resolved in the EX stage, **this implementation goes significantly beyond the baseline.** We have engineered a fully featured, highly optimized processor capable of executing complex programs and function calls.
+
+We have implemented several advanced features that dramatically improve instruction throughput and reduce pipeline stalls compared to the standard requirements:
+
+1. **Dynamic 2-Bit Branch Prediction & BTB:** Instead of a naive static predictor, we implemented a 2-bit saturating counter (Branch History Table) paired with a Branch Target Buffer (BTB). This allows the processor to dynamically learn branch behavior and fetch target addresses immediately in the **IF stage**.
+2. **Early Branch Resolution:** We moved branch resolution from the EX stage up to the **ID stage**. This reduces the branch misprediction penalty from multiple cycles down to a **single flush cycle**.
+3. **Advanced Hazard Resolution:** Beyond standard EX hazard forwarding, we implemented:
+   - **Branch Forwarding Unit:** Custom forwarding paths specifically to resolve data dependencies for the early branch resolution in the ID stage.
+   - **Load-Store Forwarding Unit:** An extra forwarding unit to bypass data directly from loads to store instructions, preventing stalls when a load is immediately followed by a store.
+4. **Comprehensive ISA Support:** The processor supports a robust subset of the RISC-V ISA, meaning it can act as a fully functional processor capable of complex function calls and returns. Supported instructions include:
+   - Full **R-type** and **I-type** arithmetic instructions.
+   - Full **B-type** conditional branches (`beq`, `bne`, `blt`, `bge`, `bltu`, `bgeu`).
+   - Full **J-type** and I-type jumps (`jal`, `jalr`).
+   - Complete memory access operations (`ld`, `sd`).
+5. **Hardware Multiplication (M-Extension partially implemented):** We implemented a Radix-4 Booth-Encoded Wallace Tree multiplier for highly efficient single-cycle multiplication operations.
 
 ---
 
@@ -388,6 +406,42 @@ Two control signals ensure correct pipeline execution:
 ---
 
 
+# Jump and Branch Instructions
+
+The processor fully supports comprehensive control flow instructions, including all conditional branches and unconditional jumps.
+
+### Conditional Branches (B-Type)
+The pipeline supports the full suite of RISC-V conditional branches: `beq`, `bne`, `blt`, `bge`, `bltu`, and `bgeu`.
+- **Early Branch Resolution:** Branch comparison is performed in the **ID stage** rather than the EX stage. This is supported by a dedicated branch forwarding unit to resolve data hazards early, minimizing the branch misprediction penalty to a single flush cycle.
+- **Comparisons:** The comparator performs full 64-bit evaluations. For unsigned branches (`bltu`, `bgeu`), the operands are treated as unsigned 64-bit integers directly without the need for manual zero-extension.
+
+### Unconditional Jumps (J-Type and I-Type)
+- **`jal` (Jump and Link):** Calculates the jump target as a PC-relative offset. The return address (PC + 4) is reliably saved to the destination register (`rd`).
+- **`jalr` (Jump and Link Register):** Calculates the jump target based on a base register (`rs1`) plus an immediate offset. In this architecture, it is specially optimized to save instruction encoding space (see Immediate Generation below).
+
+---
+
+# Immediate Generation and Encoding
+
+The immediate generator (`immgen`) extracts immediate values from the 32-bit instruction and sign-extends them to 64 bits. The encoding and decoding of these immediates vary significantly based on the instruction type to maximize efficiency and maintain compatibility:
+
+### Memory Access (`ld`, `sd`) and Standard I-Type
+For load (`ld`) and store (`sd`) instructions, the immediate represents a pure memory byte offset from a base register.
+- **Encoding:** The exact byte offset is stored verbatim in the immediate fields by the assembler.
+- **Decoding:** The processor extracts and sign-extends the value without any shifting. It is added directly to the base register to compute the exact byte address for Data Memory.
+
+### JAL and B-Type Branches
+Jump (`jal`) and conditional branch instructions target instruction addresses. To remain compatible with the RISC-V "C" (Compressed) Extension, these jumps are always aligned to multiples of 2 bytes.
+- **Encoding:** To save an extra bit of space, the assembler drops the least significant bit (bit 0) of the target byte offset. For example, if you want to jump 16 bytes (4 instructions), you write `16` in assembly, but the assembler stores `8`.
+- **Decoding:** When `immgen` decodes the instruction, it implicitly shifts the value left by 1 (by appending a `1'b0` at the lowest bit position), instantly scaling the stored `8` back up to `16` before calculating the target PC.
+
+### JALR Optimization
+Although `jalr` is technically an I-type instruction, this implementation employs a custom space-saving optimization that mimics standard branch instructions.
+- **Encoding:** The custom assembler shifts the target byte offset right by 1 before storing it (e.g., storing `8` instead of `16`). This effectively doubles the maximum jump reach of the 12-bit immediate field from ±2048 bytes to ±4096 bytes.
+- **Decoding:** In the processor, rather than appending a bit inside `immgen.v`, the pipeline wrapper explicitly shifts the immediate left by 1 (`immgen_out << 1`) during the `jalr_target` address calculation to recover the original byte offset.
+
+---
+
 # Testing
 
 To test the processor implementation, follow these steps:
@@ -424,3 +478,10 @@ For a detailed explanation of the **sequential processor design** and **pipeline
 - `SEQ/Sequential_Report.pdf`
 - `Pipeline/RISC_V_Processor_Pipeline_Report.pdf`
 
+---
+
+# Future Plans
+
+To further enhance the capabilities of this processor, the following features are planned for future development:
+1. **Full M-Extension Implementation:** Expanding the current multiplication support to include full division (`div`, `divu`) and modulo (`rem`, `remu`) operations.
+2. **Floating Point Unit (F-Extension):** Integrating a dedicated Floating Point Unit (FPU) to process single-precision floating-point arithmetic, allowing the processor to handle complex scientific and graphical computations.
